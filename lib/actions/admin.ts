@@ -39,7 +39,10 @@ export async function aprobarPago(asistenteId: string) {
   }
 
   const titular = asistentes.find(a => !a.titular_id) || asistentes[0]
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  // Detectar automáticamente la URL del sitio (Vercel lo provee en VERCEL_URL)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL 
+    ? (process.env.NEXT_PUBLIC_SITE_URL.startsWith('http') ? process.env.NEXT_PUBLIC_SITE_URL : `https://${process.env.NEXT_PUBLIC_SITE_URL}`)
+    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
   // 3. Generar QRs para cada asistente
   const ticketsData = await Promise.all(asistentes.map(async (asistente, index) => {
