@@ -185,3 +185,27 @@ export async function obtenerTodosLosAsistentes() {
   if (error) return { success: false, error: error.message }
   return { success: true, data }
 }
+
+import { cookies } from 'next/headers'
+
+export async function loginAdmin(password: string) {
+  const correctPassword = process.env.ADMIN_PASSWORD
+  
+  if (!correctPassword) {
+    return { success: false, error: 'La contraseña de administrador no está configurada en el servidor.' }
+  }
+
+  if (password === correctPassword) {
+    // Crear una sesión simple con cookie válida por 12 horas
+    const cookieStore = await cookies()
+    cookieStore.set('admin_session', 'authenticated', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 12 // 12 horas
+    })
+    return { success: true }
+  }
+
+  return { success: false, error: 'Contraseña incorrecta' }
+}
