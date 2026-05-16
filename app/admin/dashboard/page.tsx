@@ -1,3 +1,4 @@
+import React from 'react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { AprobarBoton } from '@/components/admin/AprobarBoton'
 import { BorrarBoton } from '@/components/admin/BorrarBoton'
@@ -36,118 +37,109 @@ export default async function DashboardPage() {
               </tr>
             </thead>
             <tbody className="block lg:table-row-group">
-              {asistentes?.map((a: any) => (
-                <tr key={a.id} className="block lg:table-row bg-[#0d0e12] lg:bg-transparent border border-[#2D0A4E] lg:border-b lg:border-x-0 lg:border-t-0 rounded-xl lg:rounded-none mb-4 lg:mb-0 lg:hover:bg-[#1a1e26] shadow-lg lg:shadow-none transition-colors">
-                  
-                  {/* UNICA CELDA VISIBLE EN MOBILE (Actúa como tarjeta completa) */}
-                  <td className="block lg:table-cell p-4 lg:p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+              {asistentes?.filter(a => !a.titular_id).map((t: any) => (
+                <React.Fragment key={t.id}>
+                  {/* FILA ANFITRIÓN (TITULAR) */}
+                  <tr className="block lg:table-row bg-[#0d0e12] lg:bg-transparent border border-[#2D0A4E] lg:border-b lg:border-x-0 lg:border-t-0 rounded-xl lg:rounded-none mb-4 lg:mb-0 lg:hover:bg-[#1a1e26] shadow-lg lg:shadow-none transition-colors">
                     
-                    {/* --- MOBILE VIEW --- */}
-                    <div className="lg:hidden flex flex-col relative">
-                      <input type="checkbox" id={`toggle-${a.id}`} className="peer hidden" />
-                      
-                      {/* Cabecera siempre visible */}
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-bold text-white text-lg leading-tight">{a.nombre} {a.apellido}</div>
-                          <div className="font-mono text-purple-400 text-sm mt-1">#{a.orden_id}</div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                            a.estado_pago === 'aprobado' 
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                          }`}>
-                            {a.estado_pago}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Contenido Colapsable */}
-                      <div className="hidden peer-checked:flex flex-col gap-3 mt-4 pt-4 border-t border-[#2D0A4E]/30">
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Email</span>
-                          <span className="text-gray-300 text-sm truncate max-w-[200px]">{a.email}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">DNI</span>
-                          <span className="text-gray-300 text-sm">{a.dni}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Ingreso</span>
-                          {a.ingresado ? (
-                            <span className="text-emerald-400 font-bold flex items-center gap-2 text-sm">
-                              Sí ({new Date(a.hora_ingreso).toLocaleTimeString()})
+                    {/* Celda Mobile/Orden */}
+                    <td className="block lg:table-cell p-4 lg:p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+                      <div className="lg:hidden flex flex-col relative">
+                        <input type="checkbox" id={`toggle-${t.id}`} className="peer hidden" />
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-bold text-white text-lg leading-tight">{t.nombre} {t.apellido}</div>
+                            <div className="font-mono text-purple-400 text-sm mt-1">#{t.orden_id}</div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                              t.estado_pago === 'aprobado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            }`}>
+                              {t.estado_pago}
                             </span>
-                          ) : (
-                            <span className="text-gray-500 text-sm">No</span>
-                          )}
-                        </div>
-                        
-                        <div className="flex flex-col mt-2 pt-3 border-t border-[#2D0A4E]/30 gap-2">
-                          <span className="font-bold text-purple-400 text-xs uppercase tracking-wider text-center mb-1">Acciones</span>
-                          <div className="flex justify-center gap-2">
-                            {a.estado_pago === 'pendiente' ? (
-                              <AprobarBoton asistenteId={a.id} />
-                            ) : (
-                              <AprobarBoton asistenteId={a.id} isReenviar={true} />
-                            )}
-                            <BorrarBoton asistenteId={a.id} />
                           </div>
                         </div>
+                        <div className="hidden peer-checked:flex flex-col gap-3 mt-4 pt-4 border-t border-[#2D0A4E]/30">
+                          <div className="flex justify-between items-center"><span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Email</span><span className="text-gray-300 text-sm truncate max-w-[200px]">{t.email}</span></div>
+                          <div className="flex justify-between items-center"><span className="font-bold text-purple-400 text-xs uppercase tracking-wider">DNI</span><span className="text-gray-300 text-sm">{t.dni}</span></div>
+                          <div className="flex flex-col mt-2 pt-3 border-t border-[#2D0A4E]/30 gap-2">
+                            <span className="font-bold text-purple-400 text-xs uppercase tracking-wider text-center mb-1">Acciones</span>
+                            <div className="flex justify-center gap-2">
+                              {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
+                              <BorrarBoton asistenteId={t.id} hasCompanion={asistentes.some(ac => ac.titular_id === t.id)} />
+                            </div>
+                          </div>
+                        </div>
+                        <label htmlFor={`toggle-${t.id}`} className="w-full text-center mt-4 text-purple-400 font-bold text-[10px] uppercase cursor-pointer peer-checked:hidden block bg-[#2D0A4E]/10 py-1.5 rounded-lg border border-[#2D0A4E]/30">Ver Detalles ▼</label>
+                        <label htmlFor={`toggle-${t.id}`} className="w-full text-center mt-4 text-purple-400 font-bold text-[10px] uppercase cursor-pointer hidden peer-checked:block bg-[#2D0A4E]/10 py-1.5 rounded-lg border border-[#2D0A4E]/30">Ocultar ▲</label>
                       </div>
+                      <div className="hidden lg:block font-mono text-gray-400 text-sm">#{t.orden_id}</div>
+                    </td>
 
-                      {/* Botones Toggle */}
-                      <label htmlFor={`toggle-${a.id}`} className="w-full text-center mt-4 text-purple-400 font-bold text-xs uppercase tracking-wider cursor-pointer peer-checked:hidden block bg-[#2D0A4E]/20 py-2 rounded-lg border border-[#2D0A4E]/50">
-                        Ver Detalles ▼
-                      </label>
-                      <label htmlFor={`toggle-${a.id}`} className="w-full text-center mt-4 text-purple-400 font-bold text-xs uppercase tracking-wider cursor-pointer hidden peer-checked:block bg-[#2D0A4E]/20 py-2 rounded-lg border border-[#2D0A4E]/50">
-                        Ocultar ▲
-                      </label>
-                    </div>
-
-                    {/* --- DESKTOP VIEW (Primera celda) --- */}
-                    <div className="hidden lg:block font-mono text-gray-400 text-sm">#{a.orden_id}</div>
-                  </td>
-
-                  {/* RESTO DE LAS CELDAS SOLO VISIBLES EN DESKTOP */}
-                  <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
-                    <div className="font-bold text-white text-base leading-tight">{a.nombre} {a.apellido}</div>
-                    <div className="text-sm text-gray-400">{a.email}</div>
-                  </td>
-                  <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
-                    <span className="text-gray-300 text-sm">{a.dni}</span>
-                  </td>
-                  <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                      a.estado_pago === 'aprobado' 
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.2)]' 
-                        : 'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(251,191,36,0.2)]'
-                    }`}>
-                      {a.estado_pago}
-                    </span>
-                  </td>
-                  <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
-                    {a.ingresado ? (
-                      <span className="text-emerald-400 font-bold flex items-center gap-2 text-sm">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Sí ({new Date(a.hora_ingreso).toLocaleTimeString()})
+                    <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+                      <div className="font-bold text-white text-base leading-tight">{t.nombre} {t.apellido}</div>
+                      <div className="text-sm text-gray-400">{t.email}</div>
+                    </td>
+                    <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none"><span className="text-gray-300 text-sm">{t.dni}</span></td>
+                    <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                        t.estado_pago === 'aprobado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
+                        {t.estado_pago}
                       </span>
-                    ) : (
-                      <span className="text-gray-500 text-sm">No</span>
-                    )}
-                  </td>
-                  <td className="hidden lg:table-cell p-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {a.estado_pago === 'pendiente' ? (
-                        <AprobarBoton asistenteId={a.id} />
-                      ) : (
-                        <AprobarBoton asistenteId={a.id} isReenviar={true} />
-                      )}
-                      <BorrarBoton asistenteId={a.id} />
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+                      {t.ingresado ? <span className="text-emerald-400 font-bold flex items-center gap-2 text-sm"><span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>Sí ({new Date(t.hora_ingreso).toLocaleTimeString()})</span> : <span className="text-gray-500 text-sm">No</span>}
+                    </td>
+                    <td className="hidden lg:table-cell p-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
+                        <BorrarBoton asistenteId={t.id} hasCompanion={asistentes.some(ac => ac.titular_id === t.id)} />
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* FILAS ACOMPAÑANTES */}
+                  {asistentes?.filter(ac => ac.titular_id === t.id).map((ac: any) => (
+                    <tr key={ac.id} className="block lg:table-row bg-[#0d0e12]/40 lg:bg-[#111318]/30 border-x border-b border-[#2D0A4E]/20 lg:border-b lg:border-x-0 lg:border-t-0 mb-4 lg:mb-0 opacity-80">
+                      
+                      <td className="block lg:table-cell p-3 lg:p-4 lg:pl-12 border-b border-[#2D0A4E]/10 lg:border-none">
+                        <div className="lg:hidden flex justify-between items-center pl-4 border-l-2 border-purple-500/30">
+                          <div className="flex items-center gap-2">
+                            <span className="text-purple-500 font-bold">↳</span>
+                            <div className="font-bold text-gray-400 text-sm">{ac.nombre} {ac.apellido}</div>
+                          </div>
+                          <span className="text-[9px] bg-pink-500/10 text-pink-500/60 px-1.5 py-0.5 rounded border border-pink-500/20 font-bold uppercase tracking-tighter">Acompañante</span>
+                        </div>
+                        <div className="hidden lg:block font-mono text-gray-600 text-xs pl-4">↳ #{ac.orden_id}</div>
+                      </td>
+
+                      <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600 text-lg">↳</span>
+                          <div className="font-bold text-gray-400 text-sm">{ac.nombre} {ac.apellido}</div>
+                          <span className="text-[8px] bg-pink-500/5 text-pink-500/40 px-1 py-0 rounded border border-pink-500/10 font-bold uppercase tracking-tighter">Invitado</span>
+                        </div>
+                      </td>
+                      <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none"><span className="text-gray-500 text-xs">{ac.dni}</span></td>
+                      <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none">
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
+                          ac.estado_pago === 'aprobado' ? 'text-emerald-500/40 border-emerald-500/10' : 'text-amber-500/40 border-amber-500/10'
+                        }`}>
+                          {ac.estado_pago}
+                        </span>
+                      </td>
+                      <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none">
+                        {ac.ingresado ? <span className="text-emerald-500/50 text-xs flex items-center gap-1">Sí</span> : <span className="text-gray-600 text-xs text-center">No</span>}
+                      </td>
+                      <td className="hidden lg:table-cell p-4 text-right">
+                        <div className="flex items-center justify-end gap-2 scale-90 origin-right">
+                          <BorrarBoton asistenteId={ac.id} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               ))}
               {asistentes?.length === 0 && (
                 <tr className="block lg:table-row">

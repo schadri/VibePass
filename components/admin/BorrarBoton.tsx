@@ -4,16 +4,26 @@ import { useState } from 'react'
 import { borrarAsistente } from '@/lib/actions/admin'
 import { useRouter } from 'next/navigation'
 
-export function BorrarBoton({ asistenteId }: { asistenteId: string }) {
+export function BorrarBoton({ asistenteId, hasCompanion }: { asistenteId: string, hasCompanion?: boolean }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleBorrar = async () => {
-    if (!confirm('¿Estás SEGURO que deseas ELIMINAR a este asistente por completo? Esta acción no se puede deshacer.')) return
+    let borrarAcompanantes = false
+    
+    if (hasCompanion) {
+      const confirmText = 'Este asistente es un ANFITRIÓN (Promo 2x1).\n\n¿Deseas borrar TAMBIÉN a su acompañante?\n\n- Aceptar: Borrar a AMBOS.\n- Cancelar: Borrar SOLO al anfitrión (el acompañante quedará como titular individual).'
+      borrarAcompanantes = confirm(confirmText)
+      
+      // Confirmación final de seguridad
+      if (!confirm('¿Confirmas la eliminación? Esta acción no se puede deshacer.')) return
+    } else {
+      if (!confirm('¿Estás SEGURO que deseas ELIMINAR a este asistente?')) return
+    }
 
     setLoading(true)
     try {
-      const res = await borrarAsistente(asistenteId)
+      const res = await borrarAsistente(asistenteId, borrarAcompanantes)
       if (!res.success) {
         alert('Error: ' + res.error)
       } else {
