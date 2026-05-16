@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import QRCode from 'qrcode'
 import nodemailer from 'nodemailer'
+import path from 'path'
 
 export async function aprobarPago(asistenteId: string) {
   const supabase = await createAdminClient()
@@ -131,7 +132,7 @@ export async function aprobarPago(asistenteId: string) {
       attachments: [
         {
           filename: 'PYP.png',
-          path: process.cwd() + '/lib/actions/PYP.png',
+          path: path.join(process.cwd(), 'public', 'PYP.png'),
           cid: 'logo'
         },
         ...ticketsData.map(ticket => ({
@@ -144,9 +145,9 @@ export async function aprobarPago(asistenteId: string) {
     })
 
     return { success: true }
-  } catch (emailError) {
+  } catch (emailError: any) {
     console.error('Error enviando email:', emailError)
-    return { success: false, error: 'Aprobado, pero falló el envío del correo.' }
+    return { success: false, error: `Aprobado, pero falló el correo: ${emailError.message || 'Error desconocido'}` }
   }
 }
 
