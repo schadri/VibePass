@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 export async function registrarAsistente(formData: FormData) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const nombre = formData.get('nombre') as string
   const apellido = formData.get('apellido') as string

@@ -1,13 +1,13 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import QRCode from 'qrcode'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function aprobarPago(asistenteId: string) {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   
   // 1. Marcar como aprobado y obtener el qr_token
   const { data: asistente, error: updateError } = await supabase

@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { AprobarBoton } from '@/components/admin/AprobarBoton'
 
 export const revalidate = 0 // Disable cache for this page
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data: asistentes, error } = await supabase
     .from('asistentes')
