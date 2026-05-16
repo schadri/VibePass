@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { aprobarPago } from '@/lib/actions/admin'
 import { useRouter } from 'next/navigation'
 
-export function AprobarBoton({ asistenteId }: { asistenteId: string }) {
+export function AprobarBoton({ asistenteId, isReenviar = false }: { asistenteId: string, isReenviar?: boolean }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleAprobar = async () => {
-    if (!confirm('¿Seguro que deseas aprobar este pago y enviar el QR?')) return
+    if (!confirm(`¿Seguro que deseas ${isReenviar ? 'reenviar el QR' : 'aprobar este pago y enviar el QR'}?`)) return
 
     setLoading(true)
     try {
@@ -31,9 +31,13 @@ export function AprobarBoton({ asistenteId }: { asistenteId: string }) {
     <button
       onClick={handleAprobar}
       disabled={loading}
-      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-blue-400 transition-colors"
+      className={`font-bold py-2 px-4 rounded transition-colors text-sm ${
+        isReenviar 
+          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:bg-gray-800' 
+          : 'bg-green-600 hover:bg-green-500 text-white disabled:bg-green-800'
+      }`}
     >
-      {loading ? 'Aprobando...' : 'Aprobar Pago'}
+      {loading ? 'Procesando...' : (isReenviar ? 'Reenviar Email' : 'Aprobar Pago')}
     </button>
   )
 }
