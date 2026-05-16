@@ -36,7 +36,6 @@ export function RegistroForm() {
       <input type="text" name="apellido" placeholder="Apellido" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
       <input type="text" name="dni" placeholder="DNI" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
       <input type="email" name="email" placeholder="Email" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
-      <input type="text" name="numero_referencia" placeholder="Número de Referencia (Opcional)" className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
       
       <button disabled={loading} className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold p-4 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)]">
         {loading ? 'Procesando...' : 'Completar Registro'}

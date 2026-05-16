@@ -30,7 +30,6 @@ export default async function DashboardPage() {
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Orden</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Asistente</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">DNI</th>
-                <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Referencia</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Estado</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Ingreso</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider text-right">Acciones</th>
@@ -73,10 +72,6 @@ export default async function DashboardPage() {
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">DNI</span>
                           <span className="text-gray-300 text-sm">{a.dni}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Ref. Pago</span>
-                          <span className="text-gray-400 text-sm">{a.numero_referencia || '-'}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Ingreso</span>
@@ -122,9 +117,6 @@ export default async function DashboardPage() {
                   </td>
                   <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
                     <span className="text-gray-300 text-sm">{a.dni}</span>
-                  </td>
-                  <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
-                    <span className="text-gray-400 text-sm">{a.numero_referencia || '-'}</span>
                   </td>
                   <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${

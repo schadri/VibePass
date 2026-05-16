@@ -126,6 +126,15 @@ export function ScannerEnVivo() {
     }
   }, [])
 
+  // Auto-iniciar la cámara al montar el componente
+  useEffect(() => {
+    // Pequeño delay para asegurar que el DOM esté listo
+    const timer = setTimeout(() => {
+      startScanner()
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
   // Filtrado de asistentes
   const filteredAsistentes = todosLosAsistentes.filter(a => {
     if (!searchQuery) return true
@@ -147,16 +156,7 @@ export function ScannerEnVivo() {
           </span>
         </div>
         
-        {!cameraEnabled ? (
-          <button 
-            onClick={startScanner}
-            className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xl py-6 px-12 rounded-full shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all transform hover:scale-105 active:scale-95 z-20"
-          >
-            📸 Activar Cámara
-          </button>
-        ) : (
-          <div id="reader" className="w-full max-w-md mx-auto rounded-xl overflow-hidden border-4 border-[#2D0A4E] shadow-[0_0_40px_rgba(168,85,247,0.2)] bg-black text-black z-20"></div>
-        )}
+        <div id="reader" className={`w-full max-w-md mx-auto rounded-xl overflow-hidden border-4 border-[#2D0A4E] shadow-[0_0_40px_rgba(168,85,247,0.2)] bg-black text-black z-20 ${!cameraEnabled ? 'opacity-0 absolute -z-10' : 'opacity-100 transition-opacity duration-500'}`}></div>
         
         {scanResult && (
           <div className={`absolute inset-0 z-50 flex items-center justify-center p-6 bg-black bg-opacity-90 backdrop-blur-md transition-all duration-200`}>

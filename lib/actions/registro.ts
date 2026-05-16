@@ -9,7 +9,6 @@ export async function registrarAsistente(formData: FormData) {
   const apellido = formData.get('apellido') as string
   const dni = formData.get('dni') as string
   const email = formData.get('email') as string
-  const numero_referencia = formData.get('numero_referencia') as string
 
   if (!nombre || !apellido || !dni || !email) {
     return { error: 'Faltan campos obligatorios' }
@@ -22,7 +21,6 @@ export async function registrarAsistente(formData: FormData) {
       apellido,
       dni,
       email,
-      numero_referencia: numero_referencia || null,
       estado_pago: 'pendiente'
     })
     .select('id, orden_id, nombre')
