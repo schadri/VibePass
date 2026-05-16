@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pecado & Perreo - Sistema de Gestión de Entradas 🎟️
 
-## Getting Started
+![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=for-the-badge&logo=next.js)
+![Supabase](https://img.shields.io/badge/Supabase-Database-green?style=for-the-badge&logo=supabase)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Styling-blue?style=for-the-badge&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-Development-blue?style=for-the-badge&logo=typescript)
 
-First, run the development server:
+Una plataforma moderna y robusta diseñada para la gestión de eventos, enfocada en la modalidad de **Promoción 2x1**. El sistema permite el registro de asistentes, generación automática de códigos QR, control de acceso y un panel administrativo completo.
 
+## Características Principales
+
+- **Registro 2x1:** Flujo optimizado para registrar grupos de dos personas como una única unidad de gestión.
+- **Escáner QR Integrado:** Herramienta de control de acceso en tiempo real para validación de entradas en la puerta.
+- **Panel Administrativo:** Dashboard con métricas clave, visualización de ingresos y gestión de asistentes.
+- **Automatización de Emails:** Envío automático de confirmaciones y entradas mediante integración con Gmail/Resend.
+- **Sistema de Aprobación:** Control jerárquico para la validación manual de registros y pagos.
+- **Diseño Premium:** Interfaz oscura, moderna y responsiva construida con Tailwind CSS.
+
+## Tech Stack
+
+- **Frontend:** [Next.js 15+](https://nextjs.org/) (App Router)
+- **Base de Datos & Auth:** [Supabase](https://supabase.com/)
+- **Estilos:** [Tailwind CSS 4](https://tailwindcss.com/)
+- **QR Engine:** `html5-qrcode` & `qrcode`
+- **Emails:** `nodemailer` & `resend`
+- **Iconos:** `lucide-react`
+
+## Instalación y Configuración
+
+### 1. Clonar el repositorio
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/tu-usuario/entradas.git
+cd entradas/webapp
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instalar dependencias
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configurar variables de entorno
+Crea un archivo `.env.local` en la carpeta `webapp` con las siguientes variables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 
-## Learn More
+# Sitio
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
+# Email (Gmail App Password)
+GMAIL_USER=tu_correo@gmail.com
+GMAIL_APP_PASSWORD=tu_clave_de_aplicacion
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Administración
+ADMIN_PASSWORD=tu_password_admin
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Ejecutar en desarrollo
+```bash
+npm run dev
+```
 
-## Deploy on Vercel
+## Estructura del Proyecto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+/webapp
+├── /app             # Rutas y páginas de Next.js
+│   ├── /admin       # Dashboard, Login y Scanner
+│   ├── /registro    # Flujo de registro para usuarios
+│   └── /api         # Endpoints de backend
+├── /components      # Componentes de UI reutilizables
+├── /lib             # Configuraciones de Supabase y utilidades
+└── /public          # Activos estáticos (imágenes, logos)
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Seguridad
+
+El sistema utiliza **Supabase RLS (Row Level Security)** para asegurar que los datos de los asistentes solo sean accesibles por administradores autorizados. El acceso al escáner y al dashboard está protegido mediante una capa de autenticación administrativa.
+
+---
+
+Desarrollado con ❤️ para **Pecado & Perreo**.
