@@ -111,7 +111,7 @@ export async function aprobarPago(asistenteId: string) {
               <table width="100%" style="max-width: 480px; background-color: #000000; border: 1px solid #6b21a8; border-radius: 24px; padding: 32px 20px;">
                 <tr>
                   <td align="center">
-                    <img src="cid:logo" alt="Logo" style="height: 80px; margin-bottom: 24px;" />
+                    <img src="cid:logo" alt="Pecado & Perreo" style="height: 75px; display: block; margin: 0 auto 24px auto;" />
                     <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin-bottom: 8px;">¡Tus entradas están listas!</h1>
                     <p style="color: #9ca3af; font-size: 14px; margin-bottom: 32px;">Confirmamos tu pago con éxito. Aquí tenés los accesos para la experiencia.</p>
                     
@@ -131,8 +131,8 @@ export async function aprobarPago(asistenteId: string) {
       `,
       attachments: [
         {
-          filename: 'PYP.png',
-          path: path.join(process.cwd(), 'public', 'PYP.png'),
+          filename: 'logo_mail.png',
+          path: path.join(process.cwd(), 'public', 'logo_mail.png'),
           cid: 'logo'
         },
         ...ticketsData.map(ticket => ({

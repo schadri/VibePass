@@ -96,7 +96,7 @@ export default function Home() {
             </button>
 
             {/* Title */}
-            <h2 className={`${dinNextShadow.className} text-3xl sm:text-4xl text-white mb-6 tracking-wider text-center uppercase [text-shadow:0_0_10px_rgba(226,42,142,0.3)]`}>
+            <h2 className={`${dinNextShadow.className} text-3xl sm:text-4xl text-black mb-6 tracking-wider text-center uppercase [text-shadow:-1.5px_-1.5px_0_#e22a8e,_1.5px_-1.5px_0_#e22a8e,_-1.5px_1.5px_0_#e22a8e,_1.5px_1.5px_0_#e22a8e,_0_0_15px_rgba(226,42,142,0.7)]`}>
               Valor de las entradas
             </h2>
 
