@@ -45,7 +45,7 @@ export function RegistroForm() {
           <label className="text-xs font-bold text-purple-400 uppercase tracking-wider ml-2">Tus Datos (Titular)</label>
           <input type="text" name="nombre" placeholder="Tu Nombre" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
           <input type="text" name="apellido" placeholder="Tu Apellido" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
-          <input type="text" name="dni" placeholder="Tu DNI" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
+          <input type="text" name="dni" placeholder="Tu DNI / Pasaporte" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
           <input type="email" name="email" placeholder="Tu Email (Aquí recibirás los QR)" required className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white placeholder-gray-500 transition-all" />
         </div>
 

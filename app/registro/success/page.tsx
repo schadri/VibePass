@@ -63,7 +63,7 @@ function SuccessContent() {
 
   if (loading) {
     return (
-      <div className="bg-[#161920] border border-[#2D0A4E] p-12 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="bg-[#161920]/90 backdrop-blur-md border border-[#2D0A4E] p-12 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full flex flex-col items-center justify-center relative overflow-hidden z-10">
         <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-purple-400 font-bold animate-pulse text-sm uppercase tracking-wider">Cargando tu orden...</p>
       </div>
@@ -72,7 +72,7 @@ function SuccessContent() {
 
   if (datos.error) {
     return (
-      <div className="bg-[#161920] border border-red-500/30 p-8 rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.1)] max-w-md w-full relative overflow-hidden text-center">
+      <div className="bg-[#161920]/90 backdrop-blur-md border border-red-500/30 p-8 rounded-3xl shadow-[0_0_40px_rgba(239,68,68,0.1)] max-w-md w-full relative overflow-hidden text-center z-10">
         <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -91,7 +91,7 @@ function SuccessContent() {
   }
 
   return (
-    <div className="bg-[#161920] border border-[#2D0A4E] p-8 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full relative overflow-hidden">
+    <div className="bg-[#161920]/90 backdrop-blur-md border border-[#2D0A4E] p-8 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full relative overflow-hidden z-10">
       {/* Decorative glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-b-full blur-[2px]"></div>
 
@@ -126,9 +126,12 @@ function SuccessContent() {
 
 export default function SuccessPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center bg-black bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2D0A4E] via-black to-black">
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-4 text-center bg-[url('/fondo_cel.jpg')] md:bg-[url('/fondo_windscreen.jpg')] bg-cover bg-center bg-no-repeat overflow-hidden">
+      {/* Black semi-transparent overlay */}
+      <div className="absolute inset-0 bg-black/50 z-0" />
+
       <Suspense fallback={
-        <div className="bg-[#161920] border border-[#2D0A4E] p-12 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="bg-[#161920]/90 backdrop-blur-md border border-[#2D0A4E] p-12 rounded-3xl shadow-[0_0_40px_rgba(168,85,247,0.15)] max-w-md w-full flex flex-col items-center justify-center relative overflow-hidden z-10">
           <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-purple-400 font-bold animate-pulse text-sm uppercase tracking-wider">Cargando...</p>
         </div>
