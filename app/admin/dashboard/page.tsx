@@ -2,6 +2,8 @@ import React from 'react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { AprobarBoton } from '@/components/admin/AprobarBoton'
 import { BorrarBoton } from '@/components/admin/BorrarBoton'
+import { CambiarPreciosBoton } from '@/components/admin/CambiarPreciosBoton'
+import { ConfigurarFechaBoton } from '@/components/admin/ConfigurarFechaBoton'
 
 export const revalidate = 0 // Disable cache for this page
 
@@ -20,9 +22,15 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-black text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2D0A4E] via-black to-black p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-extrabold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-          Dashboard de Administración
-        </h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+            Dashboard de Administración
+          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <ConfigurarFechaBoton />
+            <CambiarPreciosBoton />
+          </div>
+        </div>
         
         <div className="bg-[#161920]/80 backdrop-blur-sm border-0 lg:border border-[#2D0A4E] rounded-xl shadow-none lg:shadow-[0_0_30px_rgba(168,85,247,0.15)]">
           <table className="w-full text-left border-collapse block lg:table">
@@ -31,6 +39,7 @@ export default async function DashboardPage() {
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Orden</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Asistente</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">DNI</th>
+                <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Entrada</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Estado</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider">Ingreso</th>
                 <th className="p-4 font-semibold text-purple-400 text-xs sm:text-sm uppercase tracking-wider text-right">Acciones</th>
@@ -48,7 +57,16 @@ export default async function DashboardPage() {
                         <input type="checkbox" id={`toggle-${t.id}`} className="peer hidden" />
                         <div className="flex justify-between items-start">
                           <div>
-                            <div className="font-bold text-white text-lg leading-tight">{t.nombre} {t.apellido}</div>
+                            <div className="font-bold text-white text-lg leading-tight flex items-center gap-2 flex-wrap">
+                              {t.nombre} {t.apellido}
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                                asistentes.some(ac => ac.titular_id === t.id)
+                                  ? 'bg-pink-500/10 text-pink-400 border-pink-500/20'
+                                  : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                              }`}>
+                                {asistentes.some(ac => ac.titular_id === t.id) ? 'Doble' : 'Simple'}
+                              </span>
+                            </div>
                             <div className="font-mono text-purple-400 text-sm mt-1">#{t.orden_id}</div>
                           </div>
                           <div className="flex flex-col items-end gap-2">
@@ -81,6 +99,15 @@ export default async function DashboardPage() {
                       <div className="text-sm text-gray-400">{t.email}</div>
                     </td>
                     <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none"><span className="text-gray-300 text-sm">{t.dni}</span></td>
+                    <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                        asistentes.some(ac => ac.titular_id === t.id)
+                          ? 'bg-pink-500/10 text-pink-400 border-pink-500/20'
+                          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                        {asistentes.some(ac => ac.titular_id === t.id) ? 'Doble' : 'Simple'}
+                      </span>
+                    </td>
                     <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/30 lg:border-none">
                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                         t.estado_pago === 'aprobado' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
@@ -122,6 +149,9 @@ export default async function DashboardPage() {
                         </div>
                       </td>
                       <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none"><span className="text-gray-500 text-xs">{ac.dni}</span></td>
+                      <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none">
+                        <span className="text-pink-500/40 text-[10px] font-bold uppercase tracking-wider">Doble</span>
+                      </td>
                       <td className="hidden lg:table-cell p-4 border-b border-[#2D0A4E]/10 lg:border-none">
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
                           ac.estado_pago === 'aprobado' ? 'text-emerald-500/40 border-emerald-500/10' : 'text-amber-500/40 border-amber-500/10'

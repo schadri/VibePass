@@ -57,3 +57,105 @@ export async function registrarAsistente(formData: FormData) {
 
   return { success: true, ...titular }
 }
+
+export async function obtenerPrecios() {
+  const supabase = await createAdminClient()
+  try {
+    const { data, error } = await supabase
+      .from('precios')
+      .select('*')
+      .eq('id', 'default')
+      .single()
+
+    if (error || !data) {
+      // Fallback a los precios por defecto si hay un error o no existe el registro
+      return { simple: 5000, doble: 8500, puerta: 10000, fecha_evento: null }
+    }
+    return {
+      simple: data.simple,
+      doble: data.doble,
+      puerta: data.puerta,
+      fecha_evento: data.fecha_evento || null
+    }
+  } catch (e) {
+    return { simple: 5000, doble: 8500, puerta: 10000, fecha_evento: null }
+  }
+}
+
+export async function actualizarPrecios(simple: number, doble: number, puerta: number) {
+  const supabase = await createAdminClient()
+  try {
+    const { error } = await supabase
+      .from('precios')
+      .upsert({
+        id: 'default',
+        simple,
+        doble,
+        puerta
+      })
+
+    if (error) throw error
+    return { success: true }
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Error al actualizar precios' }
+  }
+}
+
+export async function actualizarFechaEvento(fecha: string | null) {
+  const supabase = await createAdminClient()
+  try {
+    const { error } = await supabase
+      .from('precios')
+      .upsert({
+        id: 'default',
+        fecha_evento: fecha
+      })
+
+    if (error) throw error
+    return { success: true }
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Error al actualizar la fecha del evento' }
+  }
+}
+
+export async function obtenerDatosOrden(ordenId: string) {
+  const supabase = await createAdminClient()
+  try {
+    // 1. Buscar al titular por orden_id (titular_id es nulo)
+    const { data: titular, error: errorTitular } = await supabase
+      .from('asistentes')
+      .select('id, nombre, apellido, email')
+      .eq('orden_id', ordenId)
+      .is('titular_id', null)
+      .single()
+
+    if (errorTitular || !titular) {
+      return { error: 'Orden no encontrada' }
+    }
+
+    // 2. Buscar si tiene acompañantes vinculados
+    const { data: acompanantes } = await supabase
+      .from('asistentes')
+      .select('id')
+      .eq('titular_id', titular.id)
+
+    const hasCompanion = !!(acompanantes && acompanantes.length > 0)
+
+    // 3. Obtener los precios activos
+    const precios = await obtenerPrecios()
+
+    // 4. Calcular el total real basado en la base de datos
+    const total = hasCompanion ? precios.doble : precios.simple
+
+    return {
+      success: true,
+      nombre: titular.nombre,
+      apellido: titular.apellido,
+      email: titular.email,
+      total,
+      hasCompanion
+    }
+  } catch (e: any) {
+    return { error: e.message || 'Error al obtener datos de la orden' }
+  }
+}

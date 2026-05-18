@@ -1,14 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { registrarAsistente } from '@/lib/actions/registro'
+import { registrarAsistente, obtenerPrecios } from '@/lib/actions/registro'
 
 export function RegistroForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [is2x1, setIs2x1] = useState(false)
+  const [precios, setPrecios] = useState({ simple: 5000, doble: 8500 })
+
+  useEffect(() => {
+    obtenerPrecios().then(setPrecios)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -21,7 +26,9 @@ export function RegistroForm() {
       const result = await registrarAsistente(formData)
       if (result.error) throw new Error(result.error)
       
-      router.push(`/registro/success?orden=${(result as any).orden_id}&nombre=${(result as any).nombre}&apellido=${(result as any).apellido}`)
+      const payload = { orden: (result as any).orden_id }
+      const token = btoa(JSON.stringify(payload))
+      router.push(`/registro/success?t=${token}`)
     } catch (err: any) {
       setError(err.message || 'Hubo un error en el registro')
     } finally {
@@ -45,7 +52,7 @@ export function RegistroForm() {
         {/* Toggle 2x1 */}
         <div className="bg-[#1a1e26] p-4 rounded-2xl border border-[#2D0A4E] shadow-inner">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-sm font-bold text-white">🎟️ Activar Promo 2x1</span>
+            <span className="text-sm font-bold text-white">🎟️ Activar Promo 2 Entradas</span>
             <div className="relative inline-flex items-center">
               <input 
                 type="checkbox" 
