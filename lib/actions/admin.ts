@@ -74,9 +74,9 @@ export async function aprobarPago(asistenteId: string) {
       auth: { user: userEmail, pass: passEmail }
     })
 
-    // Construir HTML de los tickets
+    // Construir HTML de los tickets con botones individuales de descarga y whatsapp
     const ticketsHtml = ticketsData.map(ticket => `
-      <div style="background: linear-gradient(135deg, #18052b 0%, #000000 100%); border: 1px dashed #a855f7; border-radius: 16px; padding: 24px 16px; margin-bottom: 24px;">
+      <div style="background: linear-gradient(135deg, #18052b 0%, #000000 100%); border: 1px dashed #e22a8e; border-radius: 16px; padding: 24px 16px; margin-bottom: 24px; max-width: 380px; margin-left: auto; margin-right: auto; text-align: center;">
         <div style="margin-bottom: 20px;">
           <span style="background: linear-gradient(90deg, #9333ea 0%, #db2777 100%); color: #ffffff; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; display: inline-block;">
             ENTRADA #${ticket.orden_id} ${ticket.titular_id ? '(ACOMPAÑANTE)' : '(TITULAR)'}
@@ -85,7 +85,7 @@ export async function aprobarPago(asistenteId: string) {
         <div style="background-color: #ffffff; padding: 16px; border-radius: 16px; display: inline-block; margin: 16px 0;">
           <img src="cid:${ticket.cid}" alt="Código QR" style="width: 200px; height: 200px; display: block; border-radius: 8px;" />
         </div>
-        <div style="border-top: 1px solid rgba(168,85,247,0.3); margin-top: 16px; padding-top: 16px;">
+        <div style="border-top: 1px solid rgba(168,85,247,0.3); margin-top: 16px; padding-top: 16px; margin-bottom: 16px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="text-align: center;">
             <tr>
               <td align="center" style="color: #c084fc; font-size: 11px; text-transform: uppercase; padding-bottom: 4px; width: 50%;">Nombre</td>
@@ -96,6 +96,15 @@ export async function aprobarPago(asistenteId: string) {
               <td align="center" style="color: #ffffff; font-size: 15px; font-weight: 600;">${ticket.dni}</td>
             </tr>
           </table>
+        </div>
+        <!-- BOTONES DE CONTROL DENTRO DEL CORREO -->
+        <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(226, 42, 142, 0.15);">
+          <a href="${baseUrl}/ticket/${ticket.qr_token}" target="_blank" style="display: block; background: linear-gradient(90deg, #9333ea 0%, #db2777 100%); color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 12px 16px; border-radius: 12px; text-align: center; margin-bottom: 8px; font-family: sans-serif; letter-spacing: 0.5px;">
+            Descargar Entrada
+          </a>
+          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(`¡Hola! Acá te comparto tu entrada para Pecado & Perreo: ${baseUrl}/ticket/${ticket.qr_token} 🎫🔥`)}" target="_blank" style="display: block; background-color: #10b981; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; padding: 12px 16px; border-radius: 12px; text-align: center; font-family: sans-serif; letter-spacing: 0.5px;">
+            Compartir WhatsApp
+          </a>
         </div>
       </div>
     `).join('')
@@ -228,4 +237,150 @@ export async function loginAdmin(password: string) {
   }
 
   return { success: false, error: 'Contraseña incorrecta' }
+}
+
+export async function cargarEventoMasivo({
+  compradorExistenteId,
+  buyerNombre,
+  buyerApellido,
+  buyerDni,
+  buyerEmail,
+  estadoPago = 'pendiente',
+  invitadosText
+}: {
+  compradorExistenteId?: string
+  buyerNombre?: string
+  buyerApellido?: string
+  buyerDni?: string
+  buyerEmail?: string
+  estadoPago?: 'pendiente' | 'aprobado'
+  invitadosText: string
+}) {
+  const supabase = await createAdminClient()
+
+  let titularId = compradorExistenteId
+  let email = buyerEmail || ''
+  let estado = estadoPago
+
+  // 1. Obtener/Crear al Titular
+  if (compradorExistenteId) {
+    // Si se asocia a un comprador existente, buscar su email y estado de pago
+    const { data: existente, error: fetchError } = await supabase
+      .from('asistentes')
+      .select('email, estado_pago')
+      .eq('id', compradorExistenteId)
+      .single()
+
+    if (fetchError || !existente) {
+      return { success: false, error: 'Comprador existente no encontrado.' }
+    }
+    email = existente.email
+    estado = existente.estado_pago
+  } else {
+    // Crear nuevo comprador (Titular)
+    if (!buyerNombre || !buyerApellido || !buyerDni || !buyerEmail) {
+      return { success: false, error: 'Faltan campos obligatorios para el nuevo comprador.' }
+    }
+
+    const { data: nuevoTitular, error: insertError } = await supabase
+      .from('asistentes')
+      .insert({
+        nombre: buyerNombre,
+        apellido: buyerApellido,
+        dni: buyerDni,
+        email: buyerEmail,
+        estado_pago: estadoPago
+      })
+      .select('id')
+      .single()
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        return { success: false, error: 'Ya existe un registro con ese DNI o Email para el comprador.' }
+      }
+      return { success: false, error: insertError.message }
+    }
+    titularId = nuevoTitular.id
+    email = buyerEmail
+  }
+
+  // 2. Procesar la lista de invitados
+  const lines = invitadosText.split('\n')
+  const asistentesAInsertar = []
+
+  for (let line of lines) {
+    line = line.trim()
+    if (!line) continue
+
+    let nombre = ''
+    let apellido = ''
+    let dni = ''
+
+    // Separador: coma, punto y coma, guión
+    const parts = line.split(/[,;\-]/)
+    if (parts.length >= 2) {
+      const fullName = parts[0].trim()
+      dni = parts[1].trim()
+      const nameParts = fullName.split(' ')
+      nombre = nameParts[0] || ''
+      apellido = nameParts.slice(1).join(' ') || ''
+    } else {
+      // Por espacio (última palabra es DNI)
+      const nameParts = line.split(/\s+/)
+      if (nameParts.length >= 2) {
+        dni = nameParts[nameParts.length - 1]
+        const fullNameParts = nameParts.slice(0, -1)
+        nombre = fullNameParts[0] || ''
+        apellido = fullNameParts.slice(1).join(' ') || ''
+      } else {
+        nombre = line
+        dni = 'S/D' // Sin DNI por defecto si no lo tiene
+      }
+    }
+
+    asistentesAInsertar.push({
+      nombre,
+      apellido,
+      dni,
+      email,
+      estado_pago: estado,
+      titular_id: titularId
+    })
+  }
+
+  if (asistentesAInsertar.length > 0) {
+    const { error: insertAsistentesError } = await supabase
+      .from('asistentes')
+      .insert(asistentesAInsertar)
+
+    if (insertAsistentesError) {
+      return { success: false, error: 'Error cargando los invitados: ' + insertAsistentesError.message }
+    }
+  }
+
+  return { success: true }
+}
+
+export async function marcarComoEnviado(id: string, enviado: boolean = true) {
+  const supabase = await createAdminClient()
+
+  // Intentar actualizar usando la columna 'enviado'
+  const { error } = await supabase
+    .from('asistentes')
+    .update({ enviado })
+    .eq('id', id)
+
+  if (error) {
+    // Si da error (probablemente porque no existe la columna 'enviado'), usar plan B 'numero_referencia'
+    const { error: fallbackError } = await supabase
+      .from('asistentes')
+      .update({ numero_referencia: enviado ? 'enviado' : null })
+      .eq('id', id)
+
+    if (fallbackError) {
+      return { success: false, error: fallbackError.message }
+    }
+  }
+
+  return { success: true }
 }

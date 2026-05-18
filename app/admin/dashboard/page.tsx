@@ -4,6 +4,8 @@ import { AprobarBoton } from '@/components/admin/AprobarBoton'
 import { BorrarBoton } from '@/components/admin/BorrarBoton'
 import { CambiarPreciosBoton } from '@/components/admin/CambiarPreciosBoton'
 import { ConfigurarFechaBoton } from '@/components/admin/ConfigurarFechaBoton'
+import { CargarEventoBoton } from '@/components/admin/CargarEventoBoton'
+import { CompartirGrupoBoton } from '@/components/admin/CompartirGrupoBoton'
 
 export const revalidate = 0 // Disable cache for this page
 
@@ -19,6 +21,17 @@ export default async function DashboardPage() {
     return <div className="p-8 text-red-500">Error cargando asistentes: {error.message}</div>
   }
 
+  // Filtrar compradores existentes (los que no tienen titular_id)
+  const compradores = (asistentes || [])
+    .filter(a => !a.titular_id)
+    .map(a => ({
+      id: a.id,
+      nombre: a.nombre,
+      apellido: a.apellido,
+      orden_id: String(a.orden_id),
+      email: a.email || ''
+    }))
+
   return (
     <main className="min-h-screen bg-black text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2D0A4E] via-black to-black p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
@@ -27,6 +40,7 @@ export default async function DashboardPage() {
             Dashboard de Administración
           </h1>
           <div className="flex items-center gap-3 flex-wrap">
+            <CargarEventoBoton compradores={compradores} />
             <ConfigurarFechaBoton />
             <CambiarPreciosBoton />
           </div>
@@ -80,7 +94,13 @@ export default async function DashboardPage() {
                         <div className="hidden peer-checked:flex flex-col gap-3 mt-4 pt-4 border-t border-[#2D0A4E]/30">
                           <div className="flex justify-between items-center"><span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Email</span><span className="text-gray-300 text-sm truncate max-w-[200px]">{t.email}</span></div>
                           <div className="flex justify-between items-center"><span className="font-bold text-purple-400 text-xs uppercase tracking-wider">DNI</span><span className="text-gray-300 text-sm">{t.dni}</span></div>
-                          <div className="flex flex-col mt-2 pt-3 border-t border-[#2D0A4E]/30 gap-2">
+                          {asistentes.filter(ac => ac.titular_id === t.id).length > 1 && (
+                            <div className="flex justify-between items-center border-b border-[#2D0A4E]/10 pb-2">
+                              <span className="font-bold text-purple-400 text-xs uppercase tracking-wider">Panel Cumpleaños</span>
+                              <CompartirGrupoBoton nombre={t.nombre} apellido={t.apellido} qrToken={t.qr_token} />
+                            </div>
+                          )}
+                          <div className="flex flex-col mt-2 pt-3 border-t border-[#2D0A4E]/30 gap-2 font-semibold">
                             <span className="font-bold text-purple-400 text-xs uppercase tracking-wider text-center mb-1">Acciones</span>
                             <div className="flex justify-center gap-2">
                               {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
@@ -120,6 +140,9 @@ export default async function DashboardPage() {
                     </td>
                     <td className="hidden lg:table-cell p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {asistentes.filter(ac => ac.titular_id === t.id).length > 1 && (
+                          <CompartirGrupoBoton nombre={t.nombre} apellido={t.apellido} qrToken={t.qr_token} />
+                        )}
                         {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
                         <BorrarBoton asistenteId={t.id} hasCompanion={asistentes.some(ac => ac.titular_id === t.id)} />
                       </div>
