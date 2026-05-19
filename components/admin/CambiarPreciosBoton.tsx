@@ -7,11 +7,25 @@ export function CambiarPreciosBoton() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [prices, setPrices] = useState({ simple: 5000, doble: 8500, puerta: 10000 })
+  const [prices, setPrices] = useState({
+    simple: 5000,
+    doble: 8500,
+    puerta: 10000,
+    promo_puerta: 9000,
+    ocultar_promo_puerta: false
+  })
 
   useEffect(() => {
     if (isOpen) {
-      obtenerPrecios().then(setPrices)
+      obtenerPrecios().then((res) => {
+        setPrices({
+          simple: res.simple,
+          doble: res.doble,
+          puerta: res.puerta,
+          promo_puerta: res.promo_puerta,
+          ocultar_promo_puerta: res.ocultar_promo_puerta
+        })
+      })
     }
   }, [isOpen])
 
@@ -20,7 +34,13 @@ export function CambiarPreciosBoton() {
     setLoading(true)
     setMessage('')
 
-    const result = await actualizarPrecios(prices.simple, prices.doble, prices.puerta)
+    const result = await actualizarPrecios(
+      prices.simple,
+      prices.doble,
+      prices.puerta,
+      prices.promo_puerta,
+      prices.ocultar_promo_puerta
+    )
 
     if (result.success) {
       setMessage('Precios actualizados con éxito!')
@@ -107,6 +127,33 @@ export function CambiarPreciosBoton() {
                   required 
                   className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white transition-all" 
                 />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-purple-400 uppercase tracking-wider ml-2">Promo en Puerta ($)</label>
+                <input 
+                  type="number" 
+                  value={prices.promo_puerta} 
+                  onChange={(e) => setPrices({ ...prices, promo_puerta: parseInt(e.target.value) || 0 })}
+                  required 
+                  className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white transition-all" 
+                />
+              </div>
+
+              {/* Hide Promo en Puerta Toggle */}
+              <div className="bg-[#1a1e26] p-4 rounded-2xl border border-[#2D0A4E] shadow-inner mt-2">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-sm font-bold text-white">🎟️ Ocultar Promo en Puerta</span>
+                  <div className="relative inline-flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={prices.ocultar_promo_puerta}
+                      onChange={(e) => setPrices({ ...prices, ocultar_promo_puerta: e.target.checked })}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </div>
+                </label>
               </div>
 
               <button 

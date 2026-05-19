@@ -69,20 +69,22 @@ export async function obtenerPrecios() {
 
     if (error || !data) {
       // Fallback a los precios por defecto si hay un error o no existe el registro
-      return { simple: 5000, doble: 8500, puerta: 10000, fecha_evento: null }
+      return { simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
     }
     return {
       simple: data.simple,
       doble: data.doble,
       puerta: data.puerta,
+      promo_puerta: data.promo_puerta !== undefined ? data.promo_puerta : 9000,
+      ocultar_promo_puerta: data.ocultar_promo_puerta !== undefined ? data.ocultar_promo_puerta : false,
       fecha_evento: data.fecha_evento || null
     }
   } catch (e) {
-    return { simple: 5000, doble: 8500, puerta: 10000, fecha_evento: null }
+    return { simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
   }
 }
 
-export async function actualizarPrecios(simple: number, doble: number, puerta: number) {
+export async function actualizarPrecios(simple: number, doble: number, puerta: number, promo_puerta: number, ocultar_promo_puerta: boolean) {
   const supabase = await createAdminClient()
   try {
     const { error } = await supabase
@@ -91,7 +93,9 @@ export async function actualizarPrecios(simple: number, doble: number, puerta: n
         id: 'default',
         simple,
         doble,
-        puerta
+        puerta,
+        promo_puerta,
+        ocultar_promo_puerta
       })
 
     if (error) throw error

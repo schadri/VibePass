@@ -31,7 +31,14 @@ function formatFecha(fechaStr: string | null) {
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [precios, setPrecios] = useState({ simple: 5000, doble: 8500, puerta: 10000, fecha_evento: null as string | null })
+  const [precios, setPrecios] = useState({
+    simple: 5000,
+    doble: 8500,
+    puerta: 10000,
+    promo_puerta: 9000,
+    ocultar_promo_puerta: false,
+    fecha_evento: null as string | null
+  })
 
   useEffect(() => {
     obtenerPrecios().then(setPrecios)
@@ -116,6 +123,13 @@ export default function Home() {
                 <span className="text-zinc-300 group-hover:text-white transition-colors font-medium">Entrada en puerta</span>
                 <span className="text-pink-400 font-bold text-lg">${precios.puerta.toLocaleString('es-AR')}</span>
               </div>
+              
+              {!precios.ocultar_promo_puerta && (
+                <div className="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-pink-500/30 transition-all duration-300 group">
+                  <span className="text-zinc-300 group-hover:text-white transition-colors font-medium">Promo en puerta</span>
+                  <span className="text-pink-400 font-bold text-lg">${precios.promo_puerta.toLocaleString('es-AR')}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
