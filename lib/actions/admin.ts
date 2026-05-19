@@ -312,30 +312,37 @@ export async function cargarEventoMasivo({
     line = line.trim()
     if (!line) continue
 
+    // Limpieza de introducciones comunes como "Lista Cumple - ", "Lista de invitados - ", etc.
+    line = line.replace(/^(lista\s*(cumple|grupo|invitados)?\s*[\-\–\—]?\s*)+/i, '')
+
     let nombre = ''
     let apellido = ''
     let dni = ''
 
-    // Separador: coma, punto y coma, guión
-    const parts = line.split(/[,;\-]/)
-    if (parts.length >= 2) {
-      const fullName = parts[0].trim()
-      dni = parts[1].trim()
-      const nameParts = fullName.split(' ')
+    // RegExp premium calibrada para WhatsApp que maneja:
+    // - Numeración opcional al principio (ej: "1. ", "25) ", "2.	")
+    // - Nombre completo (incluyendo espacios)
+    // - Separadores opcionales (guiones normales -, em-dash –, en-dash —, etc.)
+    // - Término de tipo de documento opcional (dni, pasaporte, documento, ci, pass, lc, le, etc.)
+    // - Indicador de número opcional (N°, Nº, no., :, etc.)
+    // - El número de DNI o Pasaporte propiamente dicho (que puede incluir puntos de formato, ej: 33.373.409)
+    const match = line.match(/^\s*(?:\d+[\.\)\-]?\s*)?(.+?)\s*(?:[\-\–\—]?\s*)?(?:dni|pasaporte|documento|pass|lc|le|ci)?\s*(?:n[o°º]|\.|\:)?\s*([a-zA-Z0-9\.]+)\s*$/i)
+
+    if (match) {
+      const fullName = match[1].trim()
+      dni = match[2].trim()
+
+      const nameParts = fullName.split(/\s+/)
       nombre = nameParts[0] || ''
       apellido = nameParts.slice(1).join(' ') || ''
     } else {
-      // Por espacio (última palabra es DNI)
-      const nameParts = line.split(/\s+/)
-      if (nameParts.length >= 2) {
-        dni = nameParts[nameParts.length - 1]
-        const fullNameParts = nameParts.slice(0, -1)
-        nombre = fullNameParts[0] || ''
-        apellido = fullNameParts.slice(1).join(' ') || ''
-      } else {
-        nombre = line
-        dni = 'S/D' // Sin DNI por defecto si no lo tiene
-      }
+      // Fallback seguro en caso de que no tenga DNI (ej: "Carlos Perez" solo)
+      // Primero limpiamos numeración inicial si existe
+      const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
+      const nameParts = cleanedFallbackLine.split(/\s+/)
+      nombre = nameParts[0] || ''
+      apellido = nameParts.slice(1).join(' ') || ''
+      dni = 'S/D'
     }
 
     asistentesAInsertar.push({

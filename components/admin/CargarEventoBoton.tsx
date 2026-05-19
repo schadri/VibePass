@@ -31,6 +31,7 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
   const [buyerEmail, setBuyerEmail] = useState('')
   const [estadoPago, setEstadoPago] = useState<'pendiente' | 'aprobado'>('pendiente')
   const [invitadosText, setInvitadosText] = useState('')
+  const [parsedInvitados, setParsedInvitados] = useState<Array<{ nombre: string; apellido: string; dni: string }>>([])
 
   const handleClose = () => {
     setIsOpen(false)
@@ -42,6 +43,70 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
     setBuyerEmail('')
     setEstadoPago('pendiente')
     setInvitadosText('')
+    setParsedInvitados([])
+  }
+
+  // Procesar el texto pegado en la caja y añadirlo a la lista de previsualización
+  const handlePreview = () => {
+    if (!invitadosText.trim()) return
+    const lines = invitadosText.split('\n')
+    const parsed: Array<{ nombre: string; apellido: string; dni: string }> = []
+
+    for (let line of lines) {
+      line = line.trim()
+      if (!line) continue
+
+      // Limpieza de introducciones comunes de WhatsApp
+      line = line.replace(/^(lista\s*(cumple|grupo|invitados)?\s*[\-\–\—]?\s*)+/i, '')
+
+      let nombre = ''
+      let apellido = ''
+      let dni = ''
+
+      // RegExp calibrada idéntica al servidor
+      const match = line.match(/^\s*(?:\d+[\.\)\-]?\s*)?(.+?)\s*(?:[\-\–\—]?\s*)?(?:dni|pasaporte|documento|pass|lc|le|ci)?\s*(?:n[o°º]|\.|\:)?\s*([a-zA-Z0-9\.]+)\s*$/i)
+
+      if (match) {
+        const fullName = match[1].trim()
+        dni = match[2].trim()
+        const nameParts = fullName.split(/\s+/)
+        nombre = nameParts[0] || ''
+        apellido = nameParts.slice(1).join(' ') || ''
+      } else {
+        const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
+        const nameParts = cleanedFallbackLine.split(/\s+/)
+        nombre = nameParts[0] || ''
+        apellido = nameParts.slice(1).join(' ') || ''
+        dni = 'S/D'
+      }
+
+      parsed.push({ nombre, apellido, dni })
+    }
+
+    setParsedInvitados([...parsedInvitados, ...parsed])
+    setInvitadosText('') // Limpiar caja una vez procesado
+  }
+
+  const handleEditRow = (index: number, field: 'nombre' | 'apellido' | 'dni', value: string) => {
+    const updated = [...parsedInvitados]
+    updated[index] = {
+      ...updated[index],
+      [field]: value
+    }
+    setParsedInvitados(updated)
+  }
+
+  const handleRemoveRow = (index: number) => {
+    setParsedInvitados(parsedInvitados.filter((_, i) => i !== index))
+  }
+
+  const handleClearAll = () => {
+    setParsedInvitados([])
+    setInvitadosText('')
+  }
+
+  const handleAddEmptyRow = () => {
+    setParsedInvitados([...parsedInvitados, { nombre: '', apellido: '', dni: '' }])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,11 +120,50 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
       return
     }
 
-    if (!invitadosText.trim()) {
+    // Auto-añadir lo que esté en el textarea si la lista está vacía
+    let listToSave = [...parsedInvitados]
+    if (invitadosText.trim() && listToSave.length === 0) {
+      const lines = invitadosText.split('\n')
+      for (let line of lines) {
+        line = line.trim()
+        if (!line) continue
+        line = line.replace(/^(lista\s*(cumple|grupo|invitados)?\s*[\-\–\—]?\s*)+/i, '')
+        let nombre = ''
+        let apellido = ''
+        let dni = ''
+        const match = line.match(/^\s*(?:\d+[\.\)\-]?\s*)?(.+?)\s*(?:[\-\–\—]?\s*)?(?:dni|pasaporte|documento|pass|lc|le|ci)?\s*(?:n[o°º]|\.|\:)?\s*([a-zA-Z0-9\.]+)\s*$/i)
+        if (match) {
+          const fullName = match[1].trim()
+          dni = match[2].trim()
+          const nameParts = fullName.split(/\s+/)
+          nombre = nameParts[0] || ''
+          apellido = nameParts.slice(1).join(' ') || ''
+        } else {
+          const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
+          const nameParts = cleanedFallbackLine.split(/\s+/)
+          nombre = nameParts[0] || ''
+          apellido = nameParts.slice(1).join(' ') || ''
+          dni = 'S/D'
+        }
+        listToSave.push({ nombre, apellido, dni })
+      }
+    }
+
+    if (listToSave.length === 0) {
       setMessage({ type: 'error', text: 'Por favor, ingresa al menos un invitado en la lista.' })
       setLoading(false)
       return
     }
+
+    // Validar nombres vacíos
+    if (listToSave.some(inv => !inv.nombre.trim())) {
+      setMessage({ type: 'error', text: 'Todos los invitados en la previsualización deben tener al menos un nombre.' })
+      setLoading(false)
+      return
+    }
+
+    // Convertir de nuevo a texto string para enviar al servidor
+    const formattedText = listToSave.map(inv => `${inv.nombre} ${inv.apellido}, ${inv.dni}`).join('\n')
 
     try {
       const res = await cargarEventoMasivo({
@@ -69,7 +173,7 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
         buyerDni: tab === 'nuevo' ? buyerDni : undefined,
         buyerEmail: tab === 'nuevo' ? buyerEmail : undefined,
         estadoPago: tab === 'nuevo' ? estadoPago : undefined,
-        invitadosText
+        invitadosText: formattedText
       })
 
       if (res.success) {
@@ -106,7 +210,7 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
           <div className="absolute inset-0" onClick={() => !loading && handleClose()} />
 
           {/* Modal Box */}
-          <div className="relative w-full max-w-lg p-6 sm:p-8 bg-[#161920]/95 border border-[#2D0A4E] rounded-3xl shadow-[0_0_55px_rgba(168,85,247,0.3)] backdrop-blur-md animate-scale-in text-left max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-2xl p-6 sm:p-8 bg-[#161920]/95 border border-[#2D0A4E] rounded-3xl shadow-[0_0_55px_rgba(168,85,247,0.3)] backdrop-blur-md animate-scale-in text-left max-h-[95vh] overflow-y-auto">
             
             {/* Close Button */}
             <button
@@ -244,27 +348,114 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
               {/* LISTA DE INVITADOS (TEXTAREA) */}
               <div className="flex flex-col gap-1.5 mt-2">
                 <label className="text-xs font-bold text-purple-400 uppercase tracking-wider ml-2 flex justify-between">
-                  <span>Lista de Invitados</span>
+                  <span>Pegar Lista de Invitados (WhatsApp)</span>
                   <span className="text-[10px] text-gray-500 font-normal">Uno por línea</span>
                 </label>
                 <textarea
-                  rows={6}
-                  placeholder={`Ejemplo:\nJuan Perez, 12345678\nMaria Gomez - 87654321\nCarlos Lopez 11223344`}
+                  rows={4}
+                  placeholder={`Pegá la lista de WhatsApp acá. Ejemplo:\n1. Carlos Perez - DNI 12.345.678\n2. Quintana Paola - DNI 31569486`}
                   value={invitadosText}
                   onChange={(e) => setInvitadosText(e.target.value)}
-                  required
                   className="p-4 bg-[#1f242e] border border-[#374151] rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-white transition-all text-xs font-mono placeholder-gray-600 leading-relaxed resize-none"
                 />
-                <p className="text-[10px] text-gray-500 ml-2">Formatos válidos por línea: <code className="text-pink-400">Nombre Apellido, DNI</code> o <code className="text-pink-400">Nombre Apellido DNI</code>. Si no tiene DNI, poné solo su nombre.</p>
+                
+                <div className="flex gap-2.5 mt-1.5">
+                  <button
+                    type="button"
+                    onClick={handlePreview}
+                    disabled={!invitadosText.trim()}
+                    className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs uppercase tracking-wider cursor-pointer shadow-lg shadow-purple-950/20"
+                  >
+                    Añadir y Previsualizar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearAll}
+                    className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-black rounded-xl transition-all text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    Limpiar Todo
+                  </button>
+                </div>
+                <p className="text-[9px] text-gray-500 ml-2 mt-1">
+                  💡 Hacé clic en <strong>Añadir y Previsualizar</strong> para verificar, corregir y editar los nombres y documentos antes de guardarlos definitivamente.
+                </p>
               </div>
+
+              {/* TABLA DE PREVISUALIZACIÓN EDITABLE */}
+              {parsedInvitados.length > 0 && (
+                <div className="space-y-3 mt-4 border-t border-[#2D0A4E]/30 pt-4 animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-black text-pink-400 uppercase tracking-widest block">
+                      Lista para Cargar ({parsedInvitados.length} Invitados)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      className="text-[10px] font-black uppercase tracking-wider text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                    >
+                      Vaciar Lista
+                    </button>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto pr-1 space-y-2">
+                    {parsedInvitados.map((inv, index) => (
+                      <div key={index} className="flex gap-2 items-center bg-[#101216]/60 p-2 rounded-xl border border-zinc-800/80 animate-in fade-in duration-150">
+                        <input
+                          type="text"
+                          value={inv.nombre}
+                          onChange={(e) => handleEditRow(index, 'nombre', e.target.value)}
+                          placeholder="Nombre"
+                          required
+                          className="flex-1 min-w-0 p-2 bg-[#1f242e] border border-[#374151] rounded-lg text-white text-xs outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                        <input
+                          type="text"
+                          value={inv.apellido}
+                          onChange={(e) => handleEditRow(index, 'apellido', e.target.value)}
+                          placeholder="Apellido"
+                          className="flex-1 min-w-0 p-2 bg-[#1f242e] border border-[#374151] rounded-lg text-white text-xs outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                        <input
+                          type="text"
+                          value={inv.dni}
+                          onChange={(e) => handleEditRow(index, 'dni', e.target.value)}
+                          placeholder="DNI / Pasaporte"
+                          className="w-28 min-w-0 p-2 bg-[#1f242e] border border-[#374151] rounded-lg text-white text-xs font-mono outline-none focus:ring-1 focus:ring-purple-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveRow(index)}
+                          className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                          title="Eliminar invitado"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddEmptyRow}
+                    className="w-full py-2 bg-[#101216]/80 hover:bg-[#1f242e] text-purple-400 hover:text-purple-300 font-bold rounded-xl border border-dashed border-purple-500/30 transition-all text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                    + Añadir Fila Manual
+                  </button>
+                </div>
+              )}
 
               {/* SUBMIT */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold p-4 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] active:scale-[0.98] cursor-pointer text-sm uppercase tracking-wider"
+                className="w-full mt-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold p-4 rounded-xl hover:opacity-90 disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] active:scale-[0.98] cursor-pointer text-sm uppercase tracking-wider"
               >
-                {loading ? 'Cargando Invitados...' : 'Procesar Carga Masiva'}
+                {loading ? 'Cargando Invitados...' : 'Confirmar y Guardar Grupo'}
               </button>
 
             </form>

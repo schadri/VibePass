@@ -103,7 +103,15 @@ export default async function DashboardPage() {
                           <div className="flex flex-col mt-2 pt-3 border-t border-[#2D0A4E]/30 gap-2 font-semibold">
                             <span className="font-bold text-purple-400 text-xs uppercase tracking-wider text-center mb-1">Acciones</span>
                             <div className="flex justify-center gap-2">
-                              {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
+                              {t.estado_pago === 'pendiente' ? (
+                                <AprobarBoton asistenteId={t.id} />
+                              ) : (
+                                <AprobarBoton 
+                                  asistenteId={t.id} 
+                                  isReenviar={true} 
+                                  isGrupo={asistentes.filter(ac => ac.titular_id === t.id).length > 1} 
+                                />
+                              )}
                               <BorrarBoton asistenteId={t.id} hasCompanion={asistentes.some(ac => ac.titular_id === t.id)} />
                             </div>
                           </div>
@@ -143,7 +151,15 @@ export default async function DashboardPage() {
                         {asistentes.filter(ac => ac.titular_id === t.id).length > 1 && (
                           <CompartirGrupoBoton nombre={t.nombre} apellido={t.apellido} qrToken={t.qr_token} />
                         )}
-                        {t.estado_pago === 'pendiente' ? <AprobarBoton asistenteId={t.id} /> : <AprobarBoton asistenteId={t.id} isReenviar={true} />}
+                        {t.estado_pago === 'pendiente' ? (
+                          <AprobarBoton asistenteId={t.id} />
+                        ) : (
+                          <AprobarBoton 
+                            asistenteId={t.id} 
+                            isReenviar={true} 
+                            isGrupo={asistentes.filter(ac => ac.titular_id === t.id).length > 1} 
+                          />
+                        )}
                         <BorrarBoton asistenteId={t.id} hasCompanion={asistentes.some(ac => ac.titular_id === t.id)} />
                       </div>
                     </td>

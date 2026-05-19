@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { aprobarPago } from '@/lib/actions/admin'
 import { useRouter } from 'next/navigation'
 
-export function AprobarBoton({ asistenteId, isReenviar = false }: { asistenteId: string, isReenviar?: boolean }) {
+export function AprobarBoton({ asistenteId, isReenviar = false, isGrupo = false }: { asistenteId: string, isReenviar?: boolean, isGrupo?: boolean }) {
   const [loading, setLoading] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [feedback, setFeedback] = useState<{type: 'error' | 'warning' | 'success', msg: string} | null>(null)
@@ -41,7 +41,7 @@ export function AprobarBoton({ asistenteId, isReenviar = false }: { asistenteId:
             : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
         }`}
       >
-        {loading ? '...' : (isReenviar ? 'Reenviar QR' : 'Aprobar Pago')}
+        {loading ? '...' : (isReenviar ? (isGrupo ? 'Enviar via Mail' : 'Reenviar QR') : 'Aprobar Pago')}
       </button>
 
       {/* Modal de Confirmación */}
@@ -62,11 +62,11 @@ export function AprobarBoton({ asistenteId, isReenviar = false }: { asistenteId:
                 )}
               </div>
               <h3 className="text-xl font-bold text-white mb-2">
-                {isReenviar ? 'Reenviar Entrada' : 'Confirmar Pago'}
+                {isReenviar ? (isGrupo ? 'Enviar Entradas' : 'Reenviar Entrada') : 'Confirmar Pago'}
               </h3>
               <p className="text-gray-400 text-sm mb-8 leading-relaxed">
                 {isReenviar 
-                  ? 'Se enviarán nuevamente los códigos QR al correo del titular.' 
+                  ? (isGrupo ? 'Se enviarán las entradas de todo el grupo al correo del titular.' : 'Se enviarán nuevamente los códigos QR al correo del titular.') 
                   : 'Al aprobar, se enviará automáticamente el correo con el QR de acceso.'}
               </p>
               <div className="flex flex-col w-full gap-3">
@@ -74,7 +74,7 @@ export function AprobarBoton({ asistenteId, isReenviar = false }: { asistenteId:
                   onClick={handleAprobar}
                   className={`w-full font-bold py-3 rounded-2xl transition-all shadow-lg ${isReenviar ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/20' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'}`}
                 >
-                  {isReenviar ? 'Si, Reenviar' : 'Si, Aprobar Pago'}
+                  {isReenviar ? (isGrupo ? 'Si, Enviar' : 'Si, Reenviar') : 'Si, Aprobar Pago'}
                 </button>
                 <button onClick={() => setShowConfirm(false)} className="w-full text-gray-500 font-bold py-2 text-sm hover:text-white">Cancelar</button>
               </div>

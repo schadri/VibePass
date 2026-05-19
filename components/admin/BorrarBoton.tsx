@@ -39,10 +39,10 @@ export function BorrarBoton({ asistenteId, hasCompanion }: { asistenteId: string
 
       {/* Modal Estético */}
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-16 sm:pt-28 overflow-y-auto animate-in fade-in duration-200">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => !loading && setShowModal(false)}
           ></div>
 
@@ -104,8 +104,8 @@ export function BorrarBoton({ asistenteId, hasCompanion }: { asistenteId: string
 
       {/* Modal de Feedback (Error) */}
       {feedback && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFeedback(null)}></div>
+        <div className="fixed inset-0 z-[120] flex items-start justify-center p-4 pt-16 sm:pt-28 overflow-y-auto animate-in fade-in duration-200">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setFeedback(null)}></div>
           <div className="relative bg-[#1a1e26] border border-gray-700 rounded-3xl p-6 w-full max-w-xs shadow-2xl animate-in zoom-in-95">
             <div className="text-center">
               <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4 bg-red-500/10 text-red-500">
