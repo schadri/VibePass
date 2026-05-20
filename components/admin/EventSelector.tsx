@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { crearEvento, cambiarEventoActivo } from '@/lib/actions/admin'
+import { crearEvento, cambiarEventoActivo, eliminarEvento } from '@/lib/actions/admin'
 import { actualizarFechaEvento } from '@/lib/actions/registro'
 
 interface EventSelectorProps {
@@ -28,6 +28,12 @@ export function EventSelector({ eventos: initialEventos, eventoActivoId }: Event
   // Fecha editable por evento
   const [editingFechaId, setEditingFechaId] = useState<string | null>(null)
   const [editingFechaVal, setEditingFechaVal] = useState('')
+
+  // Estado para eliminar evento
+  const [deletingStep, setDeletingStep] = useState<0 | 1 | 2>(0) // 0=off 1=primer aviso 2=confirmación texto
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const DELETE_WORD = 'ELIMINAR'
 
   const eventoActual = eventos.find(e => e.id === eventoActivoId) || eventos.find(e => e.activo) || eventos[0]
 
@@ -77,6 +83,34 @@ export function EventSelector({ eventos: initialEventos, eventoActivoId }: Event
       router.refresh()
     } else {
       setMessage({ type: 'error', text: res.error || 'Error al crear evento' })
+    }
+    setLoading(null)
+  }
+
+  const handleEliminarStep1 = (id: string) => {
+    setDeletingId(id)
+    setDeletingStep(1)
+    setDeleteConfirmText('')
+    setMessage(null)
+  }
+
+  const handleEliminarFinal = async () => {
+    if (!deletingId || deleteConfirmText.trim().toUpperCase() !== DELETE_WORD) return
+    setLoading(`del_${deletingId}`)
+    const res = await eliminarEvento(deletingId)
+    if (res.success) {
+      setEventos(prev => prev.filter(e => e.id !== deletingId))
+      setDeletingStep(0)
+      setDeletingId(null)
+      setMessage({ type: 'success', text: 'Evento eliminado.' })
+      router.refresh()
+      // Si el eliminado era el que se estaba viendo, volver al dashboard base
+      if (deletingId === eventoActivoId) {
+        router.push('/admin/dashboard')
+      }
+    } else {
+      setMessage({ type: 'error', text: res.error || 'Error al eliminar el evento' })
+      setDeletingStep(0)
     }
     setLoading(null)
   }
@@ -228,8 +262,71 @@ export function EventSelector({ eventos: initialEventos, eventoActivoId }: Event
                           {loading === evento.id ? '...' : 'Activar'}
                         </button>
                       )}
+                      <button
+                        onClick={() => handleEliminarStep1(evento.id)}
+                        disabled={!!loading}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-bold transition-all disabled:opacity-40"
+                        title="Eliminar este evento y todos sus asistentes"
+                      >
+                        Eliminar
+                      </button>
                     </div>
                   </div>
+
+                  {/* PASO 1: Primer aviso inline */}
+                  {deletingStep >= 1 && deletingId === evento.id && (
+                    <div className="mt-3 pt-3 border-t border-red-500/20">
+                      {deletingStep === 1 && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-xs text-red-400 font-semibold">⚠️ Esto eliminará el evento y <span className="font-black">todos sus asistentes</span> de forma permanente.</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setDeletingStep(2)}
+                              className="flex-1 text-xs bg-red-600/30 hover:bg-red-600/50 border border-red-500/40 text-red-400 font-black py-2 rounded-lg transition-all"
+                            >
+                              Sí, continuar
+                            </button>
+                            <button
+                              onClick={() => { setDeletingStep(0); setDeletingId(null) }}
+                              className="flex-1 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold py-2 rounded-lg transition-all"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {deletingStep === 2 && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-xs text-zinc-400">
+                            Escribí <span className="font-black text-white tracking-widest bg-white/10 px-1.5 py-0.5 rounded">{DELETE_WORD}</span> para confirmar:
+                          </p>
+                          <input
+                            type="text"
+                            autoFocus
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder={DELETE_WORD}
+                            className="bg-zinc-900 border border-zinc-700 text-white font-bold text-center tracking-widest text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-red-500 placeholder-zinc-600 transition-colors"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleEliminarFinal}
+                              disabled={deleteConfirmText.trim().toUpperCase() !== DELETE_WORD || loading === `del_${evento.id}`}
+                              className="flex-1 text-xs bg-red-700 hover:bg-red-600 disabled:opacity-30 disabled:cursor-not-allowed text-white font-black py-2 rounded-lg transition-all"
+                            >
+                              {loading === `del_${evento.id}` ? 'Eliminando...' : '🗑️ Eliminar definitivamente'}
+                            </button>
+                            <button
+                              onClick={() => { setDeletingStep(0); setDeletingId(null); setDeleteConfirmText('') }}
+                              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 font-bold px-3 py-2 rounded-lg transition-all"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
 

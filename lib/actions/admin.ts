@@ -276,6 +276,27 @@ export async function limpiarEvento(eventoId: string) {
   return { success: true }
 }
 
+export async function eliminarEvento(eventoId: string) {
+  const supabase = await createAdminClient()
+
+  // 1. Borrar todos los asistentes del evento
+  const { error: errorAsistentes } = await supabase
+    .from('asistentes')
+    .delete()
+    .eq('evento_id', eventoId)
+
+  if (errorAsistentes) return { success: false, error: errorAsistentes.message }
+
+  // 2. Borrar el evento en sí
+  const { error: errorEvento } = await supabase
+    .from('eventos')
+    .delete()
+    .eq('id', eventoId)
+
+  if (errorEvento) return { success: false, error: errorEvento.message }
+  return { success: true }
+}
+
 import { cookies } from 'next/headers'
 
 export async function loginAdmin(password: string) {
