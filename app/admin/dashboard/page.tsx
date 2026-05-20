@@ -3,19 +3,46 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { AprobarBoton } from '@/components/admin/AprobarBoton'
 import { BorrarBoton } from '@/components/admin/BorrarBoton'
 import { CambiarPreciosBoton } from '@/components/admin/CambiarPreciosBoton'
-import { ConfigurarFechaBoton } from '@/components/admin/ConfigurarFechaBoton'
 import { CargarEventoBoton } from '@/components/admin/CargarEventoBoton'
 import { CompartirGrupoBoton } from '@/components/admin/CompartirGrupoBoton'
+import { ValorTotalBoton } from '@/components/admin/ValorTotalBoton'
+import { EventSelector } from '@/components/admin/EventSelector'
+import { LimpiarEventoBoton } from '@/components/admin/LimpiarEventoBoton'
+import { obtenerEventoActivo, obtenerEventoPorId } from '@/lib/actions/registro'
+import { obtenerTodosLosEventos } from '@/lib/actions/admin'
 
 export const revalidate = 0 // Disable cache for this page
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ eventoId?: string }> }) {
+  const resolvedParams = await searchParams
+  const paramEventoId = resolvedParams.eventoId
+  
   const supabase = await createAdminClient()
 
-  const { data: asistentes, error } = await supabase
+  // Obtener lista de eventos
+  const eventosRes = await obtenerTodosLosEventos()
+  const eventos = (eventosRes.success ? eventosRes.data : []) ?? []
+
+  // Determinar evento actual a mostrar
+  let eventoActual = null
+  if (paramEventoId) {
+    eventoActual = await obtenerEventoPorId(paramEventoId)
+  } else {
+    eventoActual = await obtenerEventoActivo()
+  }
+
+  const eventoIdToUse = eventoActual?.id
+
+  let query = supabase
     .from('asistentes')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (eventoIdToUse) {
+    query = query.eq('evento_id', eventoIdToUse)
+  }
+
+  const { data: asistentes, error } = await query
 
   if (error) {
     return <div className="p-8 text-red-500">Error cargando asistentes: {error.message}</div>
@@ -32,17 +59,56 @@ export default async function DashboardPage() {
       email: a.email || ''
     }))
 
+  const precios = eventoActual || { simple: 5000, doble: 8500 }
+
+  // Calcular totales
+  let totalRecaudado = 0
+  let cantidadVendidas = 0
+  
+  let totalParcial = 0
+  let cantidadTotal = 0
+
+  const titulares = (asistentes || []).filter(a => !a.titular_id)
+  
+  titulares.forEach(t => {
+    const acompanantes = (asistentes || []).filter(ac => ac.titular_id === t.id)
+    const numPersonas = 1 + acompanantes.length
+    const isAprobado = t.estado_pago === 'aprobado'
+    
+    // Cada 2 personas es una promo doble, si sobra 1 es una simple
+    const cantidadDobles = Math.floor(numPersonas / 2)
+    const cantidadSimples = numPersonas % 2
+    
+    const precioTotalGrupo = (cantidadDobles * precios.doble) + (cantidadSimples * precios.simple)
+    
+    if (isAprobado) {
+      totalRecaudado += precioTotalGrupo
+      cantidadVendidas += numPersonas
+    }
+    totalParcial += precioTotalGrupo
+    cantidadTotal += numPersonas
+  })
+
   return (
     <main className="min-h-screen bg-black text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#2D0A4E] via-black to-black p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
-            Dashboard de Administración
-          </h1>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+              Dashboard de Administración
+            </h1>
+            <EventSelector eventos={eventos} eventoActivoId={eventoIdToUse} />
+          </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <CargarEventoBoton compradores={compradores} />
-            <ConfigurarFechaBoton />
-            <CambiarPreciosBoton />
+            <ValorTotalBoton 
+              total={totalRecaudado} 
+              cantidadVendidas={cantidadVendidas} 
+              totalParcial={totalParcial}
+              cantidadTotal={cantidadTotal}
+            />
+            <CargarEventoBoton compradores={compradores} eventoId={eventoIdToUse} />
+            <CambiarPreciosBoton eventoId={eventoIdToUse} />
+            <LimpiarEventoBoton eventoId={eventoIdToUse} eventoNombre={eventoActual?.nombre} />
           </div>
         </div>
         

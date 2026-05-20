@@ -15,6 +15,12 @@ export async function registrarAsistente(formData: FormData) {
     return { error: 'Faltan campos obligatorios' }
   }
 
+  // Obtener el evento activo
+  const eventoActivo = await obtenerEventoActivo()
+  if (!eventoActivo.id) {
+    return { error: 'No hay ningún evento activo configurado.' }
+  }
+
   // 1. Insertar al Titular
   const { data: titular, error: errorTitular } = await supabase
     .from('asistentes')
@@ -23,14 +29,15 @@ export async function registrarAsistente(formData: FormData) {
       apellido,
       dni,
       email,
-      estado_pago: 'pendiente'
+      estado_pago: 'pendiente',
+      evento_id: eventoActivo.id
     })
     .select('id, orden_id, nombre, apellido')
     .single()
 
   if (errorTitular) {
     if (errorTitular.code === '23505') {
-      return { error: 'Ya existe un registro con ese DNI o Email.' }
+      return { error: 'Ya existe un registro con ese DNI o Email en este evento.' }
     }
     return { error: errorTitular.message }
   }
@@ -50,7 +57,8 @@ export async function registrarAsistente(formData: FormData) {
           dni: acompDni,
           email: email, // Mismo email para recibir ambos QR
           estado_pago: 'pendiente',
-          titular_id: titular.id
+          titular_id: titular.id,
+          evento_id: eventoActivo.id
         })
     }
   }
@@ -58,45 +66,60 @@ export async function registrarAsistente(formData: FormData) {
   return { success: true, ...titular }
 }
 
-export async function obtenerPrecios() {
+export async function obtenerEventoActivo() {
   const supabase = await createAdminClient()
   try {
     const { data, error } = await supabase
-      .from('precios')
+      .from('eventos')
       .select('*')
-      .eq('id', 'default')
+      .eq('activo', true)
+      .limit(1)
       .single()
 
     if (error || !data) {
-      // Fallback a los precios por defecto si hay un error o no existe el registro
-      return { simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
+      return { id: null, nombre: 'VibePass', simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
     }
-    return {
-      simple: data.simple,
-      doble: data.doble,
-      puerta: data.puerta,
-      promo_puerta: data.promo_puerta !== undefined ? data.promo_puerta : 9000,
-      ocultar_promo_puerta: data.ocultar_promo_puerta !== undefined ? data.ocultar_promo_puerta : false,
-      fecha_evento: data.fecha_evento || null
-    }
+    return data
   } catch (e) {
-    return { simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
+    return { id: null, nombre: 'VibePass', simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
   }
 }
 
-export async function actualizarPrecios(simple: number, doble: number, puerta: number, promo_puerta: number, ocultar_promo_puerta: boolean) {
+export async function obtenerEventoPorId(eventoId: string) {
+  const supabase = await createAdminClient()
+  try {
+    const { data, error } = await supabase
+      .from('eventos')
+      .select('*')
+      .eq('id', eventoId)
+      .single()
+    if (error || !data) {
+      return { id: null, nombre: 'VibePass', simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
+    }
+    return data
+  } catch (e) {
+    return { id: null, nombre: 'VibePass', simple: 5000, doble: 8500, puerta: 10000, promo_puerta: 9000, ocultar_promo_puerta: false, fecha_evento: null }
+  }
+}
+
+// Mantenemos obtenerPrecios (como alias de evento activo) para no romper componentes que lo usaban sin id por defecto.
+export async function obtenerPrecios() {
+  return await obtenerEventoActivo()
+}
+
+export async function actualizarPrecios(eventoId: string, simple: number, doble: number, puerta: number, promo_puerta: number, ocultar_promo_puerta: boolean) {
   const supabase = await createAdminClient()
   try {
     const { error } = await supabase
-      .from('precios')
-      .upsert({
-        id: 'default',
+      .from('eventos')
+      .update({
         simple,
         doble,
         puerta,
         promo_puerta,
         ocultar_promo_puerta
       })
+      .eq('id', eventoId)
 
     if (error) throw error
     return { success: true }
@@ -105,15 +128,15 @@ export async function actualizarPrecios(simple: number, doble: number, puerta: n
   }
 }
 
-export async function actualizarFechaEvento(fecha: string | null) {
+export async function actualizarFechaEvento(eventoId: string, fecha: string | null) {
   const supabase = await createAdminClient()
   try {
     const { error } = await supabase
-      .from('precios')
-      .upsert({
-        id: 'default',
+      .from('eventos')
+      .update({
         fecha_evento: fecha
       })
+      .eq('id', eventoId)
 
     if (error) throw error
     return { success: true }
@@ -128,7 +151,7 @@ export async function obtenerDatosOrden(ordenId: string) {
     // 1. Buscar al titular por orden_id (titular_id es nulo)
     const { data: titular, error: errorTitular } = await supabase
       .from('asistentes')
-      .select('id, nombre, apellido, email')
+      .select('id, nombre, apellido, email, evento_id')
       .eq('orden_id', ordenId)
       .is('titular_id', null)
       .single()
@@ -145,11 +168,11 @@ export async function obtenerDatosOrden(ordenId: string) {
 
     const hasCompanion = !!(acompanantes && acompanantes.length > 0)
 
-    // 3. Obtener los precios activos
-    const precios = await obtenerPrecios()
+    // 3. Obtener los precios del evento de esta orden
+    const evento = await obtenerEventoPorId(titular.evento_id)
 
     // 4. Calcular el total real basado en la base de datos
-    const total = hasCompanion ? precios.doble : precios.simple
+    const total = hasCompanion ? evento.doble : evento.simple
 
     return {
       success: true,

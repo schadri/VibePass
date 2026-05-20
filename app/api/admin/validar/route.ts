@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { obtenerEventoActivo } from '@/lib/actions/registro'
 
 export async function POST(request: Request) {
   try {
@@ -10,12 +11,17 @@ export async function POST(request: Request) {
 
     const { data: asistente, error } = await supabase
       .from('asistentes')
-      .select('id, nombre, apellido, estado_pago, ingresado, hora_ingreso')
+      .select('id, nombre, apellido, estado_pago, ingresado, hora_ingreso, evento_id')
       .eq('qr_token', token)
       .single()
 
     if (error || !asistente) {
       return NextResponse.json({ error: 'QR Inválido o Entrada no existe' }, { status: 404 })
+    }
+
+    const eventoActivo = await obtenerEventoActivo()
+    if (eventoActivo && eventoActivo.id && asistente.evento_id !== eventoActivo.id) {
+      return NextResponse.json({ error: 'Esta entrada pertenece a un EVENTO PASADO/DIFERENTE.' }, { status: 403 })
     }
 
     if (asistente.estado_pago === 'pendiente') {

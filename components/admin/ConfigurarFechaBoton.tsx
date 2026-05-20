@@ -1,27 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { obtenerPrecios, actualizarFechaEvento } from '@/lib/actions/registro'
+import { actualizarFechaEvento } from '@/lib/actions/registro'
 
-export function ConfigurarFechaBoton() {
+export function ConfigurarFechaBoton({ eventoId, fechaActual }: { eventoId?: string, fechaActual?: string | null }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [fecha, setFecha] = useState('')
+  const [fecha, setFecha] = useState(fechaActual || '')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState({ type: '', message: '' })
 
   useEffect(() => {
     if (isOpen) {
-      setLoading(true)
-      obtenerPrecios().then((res) => {
-        if (res.fecha_evento) {
-          setFecha(res.fecha_evento)
-        } else {
-          setFecha('')
-        }
-        setLoading(false)
-      })
+      setFecha(fechaActual || '')
     }
-  }, [isOpen])
+  }, [isOpen, fechaActual])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,7 +21,8 @@ export function ConfigurarFechaBoton() {
     setStatus({ type: '', message: '' })
 
     try {
-      const result = await actualizarFechaEvento(fecha || null)
+      if (!eventoId) throw new Error('No hay evento seleccionado')
+      const result = await actualizarFechaEvento(eventoId, fecha || null)
       if (result.success) {
         setStatus({ type: 'success', message: '¡Fecha del evento guardada con éxito!' })
         setTimeout(() => {
@@ -51,7 +44,8 @@ export function ConfigurarFechaBoton() {
     setLoading(true)
     setStatus({ type: '', message: '' })
     try {
-      const result = await actualizarFechaEvento(null)
+      if (!eventoId) throw new Error('No hay evento seleccionado')
+      const result = await actualizarFechaEvento(eventoId, null)
       if (result.success) {
         setFecha('')
         setStatus({ type: 'success', message: '¡Fecha del evento reiniciada a Próximamente!' })

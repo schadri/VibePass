@@ -231,17 +231,11 @@ export function GrupoDashboardClient({ titular, invitados }: GrupoDashboardClien
               >
                 {/* Datos del Invitado */}
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center border font-bold text-sm ${
-                    isTitular 
-                      ? 'bg-pink-500/10 border-pink-500/30 text-pink-400' 
-                      : 'bg-purple-500/10 border-purple-500/20 text-purple-300'
-                  }`}>
-                    {item.nombre.charAt(0)}
-                  </div>
-                  
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-white font-black text-base">{item.nombre} {item.apellido}</span>
+                      <span className="text-white font-black text-base">
+                        {item.nombre.replace(/,+$/, '').trim()} {item.apellido.replace(/,+$/, '').trim()}
+                      </span>
                       <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
                         isTitular 
                           ? 'bg-pink-500/10 text-pink-400 border-pink-500/30' 

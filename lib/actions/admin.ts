@@ -204,15 +204,76 @@ export async function obtenerUltimosIngresos() {
   return { success: true, data }
 }
 
-export async function obtenerTodosLosAsistentes() {
+export async function obtenerTodosLosAsistentes(eventoId?: string) {
   const supabase = await createAdminClient()
-  const { data, error } = await supabase
-    .from('asistentes')
-    .select('*')
-    .order('hora_ingreso', { ascending: false, nullsFirst: false }) // Priorizar a los que entraron recientemente
+  let query = supabase.from('asistentes').select('*')
+  
+  if (eventoId) {
+    query = query.eq('evento_id', eventoId)
+  }
+  
+  const { data, error } = await query.order('hora_ingreso', { ascending: false, nullsFirst: false })
 
   if (error) return { success: false, error: error.message }
   return { success: true, data }
+}
+
+export async function obtenerTodosLosEventos() {
+  const supabase = await createAdminClient()
+  const { data, error } = await supabase
+    .from('eventos')
+    .select('id, nombre, fecha_evento, activo, created_at')
+    .order('created_at', { ascending: false })
+
+  if (error) return { success: false, error: error.message }
+  return { success: true, data }
+}
+
+export async function crearEvento(nombre: string, fecha_evento: string, simple: number, doble: number, puerta: number, promo_puerta: number) {
+  const supabase = await createAdminClient()
+  
+  // Desactivar todos primero
+  await supabase.from('eventos').update({ activo: false }).neq('id', '00000000-0000-0000-0000-000000000000')
+  
+  // Insertar nuevo con activo = true
+  const { data, error } = await supabase.from('eventos').insert({ 
+    nombre, 
+    fecha_evento, 
+    simple, 
+    doble, 
+    puerta, 
+    promo_puerta, 
+    activo: true 
+  }).select('id').single()
+  
+  if (error) return { success: false, error: error.message }
+  return { success: true, id: data?.id }
+}
+
+export async function cambiarEventoActivo(eventoId: string) {
+  const supabase = await createAdminClient()
+  
+  // Desactivar todos
+  await supabase.from('eventos').update({ activo: false }).neq('id', '00000000-0000-0000-0000-000000000000')
+  
+  // Activar el seleccionado
+  const { error } = await supabase.from('eventos').update({ activo: true }).eq('id', eventoId)
+  
+  if (error) return { success: false, error: error.message }
+  return { success: true }
+}
+
+export async function limpiarEvento(eventoId: string) {
+  const supabase = await createAdminClient()
+
+  // Borrar todos los asistentes del evento (los acompañantes se borran por cascade o porque también tienen el evento_id)
+  const { error } = await supabase
+    .from('asistentes')
+    .delete()
+    .eq('evento_id', eventoId)
+
+  if (error) return { success: false, error: error.message }
+  return { success: true }
 }
 
 import { cookies } from 'next/headers'
@@ -246,7 +307,8 @@ export async function cargarEventoMasivo({
   buyerDni,
   buyerEmail,
   estadoPago = 'pendiente',
-  invitadosText
+  invitadosText,
+  eventoId
 }: {
   compradorExistenteId?: string
   buyerNombre?: string
@@ -255,6 +317,7 @@ export async function cargarEventoMasivo({
   buyerEmail?: string
   estadoPago?: 'pendiente' | 'aprobado'
   invitadosText: string
+  eventoId: string
 }) {
   const supabase = await createAdminClient()
 
@@ -289,7 +352,8 @@ export async function cargarEventoMasivo({
         apellido: buyerApellido,
         dni: buyerDni,
         email: buyerEmail,
-        estado_pago: estadoPago
+        estado_pago: estadoPago,
+        evento_id: eventoId
       })
       .select('id')
       .single()
@@ -333,15 +397,15 @@ export async function cargarEventoMasivo({
       dni = match[2].trim()
 
       const nameParts = fullName.split(/\s+/)
-      nombre = nameParts[0] || ''
-      apellido = nameParts.slice(1).join(' ') || ''
+      nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+      apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
     } else {
       // Fallback seguro en caso de que no tenga DNI (ej: "Carlos Perez" solo)
       // Primero limpiamos numeración inicial si existe
       const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
       const nameParts = cleanedFallbackLine.split(/\s+/)
-      nombre = nameParts[0] || ''
-      apellido = nameParts.slice(1).join(' ') || ''
+      nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+      apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
       dni = 'S/D'
     }
 
@@ -351,7 +415,8 @@ export async function cargarEventoMasivo({
       dni,
       email,
       estado_pago: estado,
-      titular_id: titularId
+      titular_id: titularId,
+      evento_id: eventoId
     })
   }
 

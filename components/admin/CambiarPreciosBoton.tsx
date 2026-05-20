@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { obtenerPrecios, actualizarPrecios } from '@/lib/actions/registro'
+import { obtenerEventoPorId, actualizarPrecios } from '@/lib/actions/registro'
 
-export function CambiarPreciosBoton() {
+export function CambiarPreciosBoton({ eventoId }: { eventoId?: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -16,8 +16,8 @@ export function CambiarPreciosBoton() {
   })
 
   useEffect(() => {
-    if (isOpen) {
-      obtenerPrecios().then((res) => {
+    if (isOpen && eventoId) {
+      obtenerEventoPorId(eventoId).then((res) => {
         setPrices({
           simple: res.simple,
           doble: res.doble,
@@ -27,14 +27,21 @@ export function CambiarPreciosBoton() {
         })
       })
     }
-  }, [isOpen])
+  }, [isOpen, eventoId])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setMessage('')
 
+    if (!eventoId) {
+      setMessage('Error: No hay evento seleccionado')
+      setLoading(false)
+      return
+    }
+
     const result = await actualizarPrecios(
+      eventoId,
       prices.simple,
       prices.doble,
       prices.puerta,

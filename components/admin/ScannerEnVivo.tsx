@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { createClient } from '@/lib/supabase/client'
 import { obtenerTodosLosAsistentes } from '@/lib/actions/admin'
+import { obtenerEventoActivo } from '@/lib/actions/registro'
 
 export function ScannerEnVivo() {
   const [scanResult, setScanResult] = useState<{ type: 'success' | 'error', msg: string } | null>(null)
@@ -20,9 +21,12 @@ export function ScannerEnVivo() {
   // Suscripción Realtime y carga inicial
   useEffect(() => {
     const cargarIniciales = async () => {
-      const res = await obtenerTodosLosAsistentes()
-      if (res.success && res.data) {
-        setTodosLosAsistentes(res.data)
+      const evento = await obtenerEventoActivo()
+      if (evento && evento.id) {
+        const res = await obtenerTodosLosAsistentes(evento.id)
+        if (res.success && res.data) {
+          setTodosLosAsistentes(res.data)
+        }
       }
     }
     cargarIniciales()

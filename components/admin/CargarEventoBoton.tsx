@@ -14,9 +14,10 @@ interface Comprador {
 
 interface CargarEventoBotonProps {
   compradores: Comprador[]
+  eventoId?: string
 }
 
-export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
+export function CargarEventoBoton({ compradores, eventoId }: CargarEventoBotonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [tab, setTab] = useState<'existente' | 'nuevo'>('existente')
@@ -70,13 +71,13 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
         const fullName = match[1].trim()
         dni = match[2].trim()
         const nameParts = fullName.split(/\s+/)
-        nombre = nameParts[0] || ''
-        apellido = nameParts.slice(1).join(' ') || ''
+        nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+        apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
       } else {
         const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
         const nameParts = cleanedFallbackLine.split(/\s+/)
-        nombre = nameParts[0] || ''
-        apellido = nameParts.slice(1).join(' ') || ''
+        nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+        apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
         dni = 'S/D'
       }
 
@@ -119,6 +120,12 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
       setLoading(false)
       return
     }
+    
+    if (!eventoId) {
+      setMessage({ type: 'error', text: 'Error: No hay evento seleccionado.' })
+      setLoading(false)
+      return
+    }
 
     // Auto-añadir lo que esté en el textarea si la lista está vacía
     let listToSave = [...parsedInvitados]
@@ -136,13 +143,13 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
           const fullName = match[1].trim()
           dni = match[2].trim()
           const nameParts = fullName.split(/\s+/)
-          nombre = nameParts[0] || ''
-          apellido = nameParts.slice(1).join(' ') || ''
+          nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+          apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
         } else {
           const cleanedFallbackLine = line.replace(/^\s*(?:\d+[\.\)\-]?\s*)/, '').trim()
           const nameParts = cleanedFallbackLine.split(/\s+/)
-          nombre = nameParts[0] || ''
-          apellido = nameParts.slice(1).join(' ') || ''
+          nombre = (nameParts[0] || '').replace(/,+$/, '').trim()
+          apellido = (nameParts.slice(1).join(' ') || '').replace(/,+$/, '').trim()
           dni = 'S/D'
         }
         listToSave.push({ nombre, apellido, dni })
@@ -173,7 +180,8 @@ export function CargarEventoBoton({ compradores }: CargarEventoBotonProps) {
         buyerDni: tab === 'nuevo' ? buyerDni : undefined,
         buyerEmail: tab === 'nuevo' ? buyerEmail : undefined,
         estadoPago: tab === 'nuevo' ? estadoPago : undefined,
-        invitadosText: formattedText
+        invitadosText: formattedText,
+        eventoId: eventoId
       })
 
       if (res.success) {
