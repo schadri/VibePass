@@ -5,16 +5,17 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-Styling-blue?style=for-the-badge&logo=tailwind-css)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Development-blue?style=for-the-badge&logo=typescript)
 
-Una plataforma moderna y robusta diseñada para la gestión de eventos, enfocada en la modalidad de **Promoción 2x1**. El sistema permite el registro de asistentes, generación automática de códigos QR, control de acceso y un panel administrativo completo.
+Una plataforma moderna y robusta diseñada para la gestión de eventos de la fiesta **Pecado & Perreo**. El sistema abarca todo el ciclo de vida de las entradas: desde la venta online y promociones, hasta el control de acceso en puerta y la gestión administrativa avanzada.
 
 ## Características Principales
 
-- **Registro 2x1:** Flujo optimizado para registrar grupos de dos personas como una única unidad de gestión.
-- **Escáner QR Integrado:** Herramienta de control de acceso en tiempo real para validación de entradas en la puerta.
-- **Panel Administrativo:** Dashboard con métricas clave, visualización de ingresos y gestión de asistentes.
-- **Automatización de Emails:** Envío automático de confirmaciones y entradas mediante integración con Gmail/Resend.
-- **Sistema de Aprobación:** Control jerárquico para la validación manual de registros y pagos.
-- **Diseño Premium:** Interfaz oscura, moderna y responsiva construida con Tailwind CSS.
+- **Registro Flexible de Entradas:** Flujos de venta para entradas individuales, promociones 2x1 (registro de grupos de dos personas como una unidad), y opciones de "Promo en Puerta".
+- **Gestión Dinámica de Precios y Fechas:** Panel administrativo que permite modificar en tiempo real el valor de las entradas (individuales, dobles, en puerta, promo en puerta) y la fecha del próximo evento.
+- **Escáner QR Integrado y en Vivo:** Herramienta de control de acceso en tiempo real para validación de entradas en la puerta, con feedback visual instantáneo.
+- **Panel Administrativo Integral:** Dashboard con métricas clave, visualización de ingresos, gestión de asistentes, aprobación manual de pagos, y acciones avanzadas como cargar listas o enviar links.
+- **Automatización de Emails y Tickets:** Envío automático de confirmaciones, entradas con códigos QR y notificaciones utilizando integración con correos transaccionales.
+- **Compartir Entradas:** Funcionalidad integrada para compartir fácilmente las entradas generadas a los asistentes vía enlaces directos.
+- **Diseño Premium:** Interfaz oscura, moderna y responsiva construida con Tailwind CSS, fuertemente optimizada para uso móvil.
 
 ## Tech Stack
 
@@ -68,17 +69,20 @@ npm run dev
 ```
 /webapp
 ├── /app             # Rutas y páginas de Next.js
-│   ├── /admin       # Dashboard, Login y Scanner
-│   ├── /registro    # Flujo de registro para usuarios
-│   └── /api         # Endpoints de backend
+│   ├── /admin       # Dashboard, Login, control de precios, fechas y Scanner
+│   ├── /registro    # Flujo de registro individual y promociones
+│   ├── /grupo       # Gestión de entradas para grupos (2x1)
+│   ├── /ticket      # Visualización de tickets y QR para los clientes
+│   └── /api         # Endpoints de backend y correos
 ├── /components      # Componentes de UI reutilizables
+│   └── /admin       # Componentes exclusivos del panel de control
 ├── /lib             # Configuraciones de Supabase y utilidades
-└── /public          # Activos estáticos (imágenes, logos)
+└── /public          # Activos estáticos (imágenes, logos, fuentes)
 ```
 
 ## Seguridad
 
-El sistema utiliza **Supabase RLS (Row Level Security)** para asegurar que los datos de los asistentes solo sean accesibles por administradores autorizados. El acceso al escáner y al dashboard está protegido mediante una capa de autenticación administrativa.
+El sistema utiliza **Supabase RLS (Row Level Security)** para asegurar que los datos de los asistentes solo sean accesibles por administradores autorizados. El acceso al escáner, al dashboard y a las configuraciones de precios/eventos está protegido mediante una capa de autenticación administrativa y contraseñas.
 
 ---
 
