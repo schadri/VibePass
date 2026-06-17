@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { loginAdmin } from '@/lib/actions/admin'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -47,15 +49,23 @@ export default function AdminLogin() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
+            <div className="relative group">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#0d0e12] border border-[#2D0A4E] rounded-xl px-4 py-4 text-white text-center text-xl tracking-widest focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors placeholder-gray-600"
+                className="w-full bg-[#0d0e12] border border-[#2D0A4E] rounded-xl px-4 py-4 pr-12 text-white text-center text-xl tracking-widest focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors placeholder-gray-600"
                 autoFocus
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 focus:outline-none transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
             {error && (
