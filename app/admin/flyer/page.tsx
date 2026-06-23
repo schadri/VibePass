@@ -122,12 +122,12 @@ export default function FlyerGenerator() {
               {/* Title Settings */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Título Superior</label>
-                <input
-                  type="text"
+                <textarea
                   name="title"
                   value={data.title}
                   onChange={handleChange}
-                  className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-500"
+                  rows={2}
+                  className="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyan-500 resize-none"
                 />
                 {renderControls("titleScale", "titleY", data.titleScale, data.titleY)}
               </div>
@@ -263,7 +263,7 @@ export default function FlyerGenerator() {
 
                 {/* Título Superior */}
                 <div style={{ transform: `translateY(${data.titleY}px) scale(${data.titleScale})`, transition: 'transform 0.2s ease-out' }}>
-                  <h2 className={`${dinNextShadow.className} text-[40px] text-center uppercase tracking-widest px-4 leading-tight z-10 mb-4 text-black [text-shadow:-1px_-1px_0_#ff3399,_1px_-1px_0_#ff3399,_-1px_1px_0_#ff3399,_1px_1px_0_#ff3399,_0_0_10px_rgba(255,51,153,0.8)]`}>
+                  <h2 className={`${dinNextShadow.className} text-[40px] text-center uppercase tracking-widest px-4 leading-tight z-10 mb-4 text-black [text-shadow:-1px_-1px_0_#ff3399,_1px_-1px_0_#ff3399,_-1px_1px_0_#ff3399,_1px_1px_0_#ff3399,_0_0_10px_rgba(255,51,153,0.8)] whitespace-pre`}>
                     {data.title}
                   </h2>
                 </div>
