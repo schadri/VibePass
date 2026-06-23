@@ -4,7 +4,7 @@ import { Client } from 'pg'
 export async function GET() {
   const sourceDbUri = 'postgresql://postgres:BgtRct5A3lV2XnTV@db.hegyqzhzrwavwlnfcehb.supabase.co:5432/postgres'
   
-  const targetHost = process.env.SUPABASE_DB_HOST || 'xo4g0gsooook08k4cgccsksk'
+  const targetHost = process.env.SUPABASE_DB_HOST || 'pc8sscs04kscc4scg88ck0g8'
   const targetPassword = process.env.SUPABASE_DB_PASSWORD || 'cuKbJefMPpl9e0rW2i8ruRk4ek3RwXgx'
   const targetPort = parseInt(process.env.SUPABASE_DB_PORT || '5432', 10)
   

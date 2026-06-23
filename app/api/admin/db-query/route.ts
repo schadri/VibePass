@@ -37,6 +37,7 @@ function testTcp(host: string, port: number): Promise<boolean> {
 
 export async function GET() {
   const candidates = [
+    'pc8sscs04kscc4scg88ck0g8',
     'xo4g0gsooook08k4cgccsksk',
     'supabase-db',
     'supabase-db-pc8sscs04kscc4scg88ck0g8',
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Invalid payload: queries must be an array' }, { status: 400 })
     }
 
-    const targetHost = process.env.SUPABASE_DB_HOST || 'xo4g0gsooook08k4cgccsksk'
+    const targetHost = process.env.SUPABASE_DB_HOST || 'pc8sscs04kscc4scg88ck0g8'
     const targetPassword = process.env.SUPABASE_DB_PASSWORD || 'cuKbJefMPpl9e0rW2i8ruRk4ek3RwXgx'
     const targetPort = parseInt(process.env.SUPABASE_DB_PORT || '5432', 10)
 
