@@ -1,5 +1,69 @@
 import { NextResponse } from 'next/server'
 import { Client } from 'pg'
+import dns from 'dns'
+import net from 'net'
+
+function resolveDns(host: string): Promise<string[]> {
+  return new Promise((resolve) => {
+    dns.resolve(host, (err, addresses) => {
+      if (err) {
+        resolve([])
+      } else {
+        resolve(addresses)
+      }
+    })
+  })
+}
+
+function testTcp(host: string, port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket()
+    socket.setTimeout(2000)
+    socket.on('connect', () => {
+      socket.destroy()
+      resolve(true)
+    })
+    socket.on('timeout', () => {
+      socket.destroy()
+      resolve(false)
+    })
+    socket.on('error', () => {
+      socket.destroy()
+      resolve(false)
+    })
+    socket.connect(port, host)
+  })
+}
+
+export async function GET() {
+  const candidates = [
+    'xo4g0gsooook08k4cgccsksk',
+    'supabase-db',
+    'supabase-db-pc8sscs04kscc4scg88ck0g8',
+    'pc8sscs04kscc4scg88ck0g8-supabase-db',
+    'pc8sscs04kscc4scg88ck0g8_supabase-db',
+    'localhost',
+    '127.0.0.1',
+    'host.docker.internal'
+  ]
+
+  const results: any[] = []
+
+  for (const host of candidates) {
+    const ips = await resolveDns(host)
+    const portOpen = await testTcp(host, 5432)
+    results.push({
+      host,
+      ips,
+      portOpen
+    })
+  }
+
+  return NextResponse.json({
+    success: true,
+    results
+  })
+}
 
 export async function POST(req: Request) {
   try {
@@ -33,7 +97,6 @@ export async function POST(req: Request) {
 
     const results = []
     
-    // Execute all queries in a single transaction
     await client.query('BEGIN')
     try {
       for (const q of queries) {
