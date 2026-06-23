@@ -3,10 +3,10 @@ import { Client } from 'pg'
 
 export async function GET() {
   const dbPassword = process.env.SUPABASE_DB_PASSWORD || 'BgtRct5A3lV2XnTV'
-  const dbHost = 'db.hegyqzhzrwavwlnfcehb.supabase.co'
+  const dbHost = process.env.SUPABASE_DB_HOST || 'db.hegyqzhzrwavwlnfcehb.supabase.co'
   const dbUser = 'postgres'
   const dbName = 'postgres'
-  const dbPort = 5432
+  const dbPort = parseInt(process.env.SUPABASE_DB_PORT || '5432', 10)
 
   const client = new Client({
     host: dbHost,
