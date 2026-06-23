@@ -8,8 +8,11 @@ export async function GET() {
   const targetPassword = process.env.SUPABASE_DB_PASSWORD || 'cuKbJefMPpl9e0rW2i8ruRk4ek3RwXgx'
   const targetPort = parseInt(process.env.SUPABASE_DB_PORT || '5432', 10)
   
+  console.log(`Target database connection details: Host=${targetHost}, Port=${targetPort}`)
+
   const sourceClient = new Client({
     connectionString: sourceDbUri,
+    connectionTimeoutMillis: 5000,
     ssl: { rejectUnauthorized: false }
   })
 
@@ -19,14 +22,28 @@ export async function GET() {
     user: 'postgres',
     password: targetPassword,
     database: 'postgres',
+    connectionTimeoutMillis: 5000,
     ssl: { rejectUnauthorized: false }
   })
 
   try {
-    console.log('Connecting to databases...')
-    await sourceClient.connect()
-    await targetClient.connect()
-    console.log('Connected successfully.')
+    console.log('Connecting to source database...')
+    try {
+      await sourceClient.connect()
+      console.log('Connected to source database successfully.')
+    } catch (sourceErr: any) {
+      console.error('Failed to connect to source database:', sourceErr.message)
+      throw new Error(`Source connection failed: ${sourceErr.message}`)
+    }
+
+    console.log('Connecting to target database...')
+    try {
+      await targetClient.connect()
+      console.log('Connected to target database successfully.')
+    } catch (targetErr: any) {
+      console.error('Failed to connect to target database:', targetErr.message)
+      throw new Error(`Target connection failed: ${targetErr.message}`)
+    }
 
     // 1. Enable uuid-ossp extension
     await targetClient.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
@@ -110,7 +127,6 @@ export async function GET() {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       `, [r.id, r.nombre, r.fecha_evento, r.simple, r.doble, r.puerta, r.promo_puerta, r.ocultar_promo_puerta, r.activo, r.created_at])
     }
-    console.log(`Migrated ${eventosSource.rowCount} rows of eventos`);
 
     // 6. Migrate Precios
     const preciosSource = await sourceClient.query('SELECT * FROM precios')
@@ -120,7 +136,6 @@ export async function GET() {
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [r.id, r.simple, r.doble, r.puerta, r.fecha_evento, r.promo_puerta, r.ocultar_promo_puerta])
     }
-    console.log(`Migrated ${preciosSource.rowCount} rows of precios`);
 
     // 7. Migrate Asistentes
     const asistentesSource = await sourceClient.query('SELECT * FROM asistentes')
@@ -130,7 +145,6 @@ export async function GET() {
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
       `, [r.id, r.orden_id, r.nombre, r.apellido, r.dni, r.email, r.numero_referencia, r.estado_pago, r.qr_token, r.ingresado, r.hora_ingreso, r.created_at, r.titular_id, r.enviado, r.evento_id])
     }
-    console.log(`Migrated ${asistentesSource.rowCount} rows of asistentes`);
 
     // Re-enable triggers
     await targetClient.query('ALTER TABLE asistentes ENABLE TRIGGER ALL;')
@@ -142,7 +156,6 @@ export async function GET() {
     if (seqValRes.rows.length > 0) {
       const { last_value, is_called } = seqValRes.rows[0]
       await targetClient.query(`SELECT setval('asistentes_orden_id_seq', $1, $2)`, [last_value, is_called])
-      console.log(`Synchronized sequence asistentes_orden_id_seq to ${last_value}`);
     }
 
     await sourceClient.end()
