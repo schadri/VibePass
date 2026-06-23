@@ -75,14 +75,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { queries } = await req.json()
+    const { queries, host, port } = await req.json()
     if (!Array.isArray(queries)) {
       return NextResponse.json({ success: false, error: 'Invalid payload: queries must be an array' }, { status: 400 })
     }
 
-    const targetHost = process.env.SUPABASE_DB_HOST || 'pc8sscs04kscc4scg88ck0g8'
+    const targetHost = host || process.env.SUPABASE_DB_HOST || 'pc8sscs04kscc4scg88ck0g8'
     const targetPassword = process.env.SUPABASE_DB_PASSWORD || 'cuKbJefMPpl9e0rW2i8ruRk4ek3RwXgx'
-    const targetPort = parseInt(process.env.SUPABASE_DB_PORT || '5432', 10)
+    const targetPort = parseInt(port || process.env.SUPABASE_DB_PORT || '5432', 10)
 
     const client = new Client({
       host: targetHost,
