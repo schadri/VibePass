@@ -91,7 +91,7 @@ export async function POST(req: Request) {
       password: targetPassword,
       database: 'postgres',
       connectionTimeoutMillis: 5000,
-      ssl: { rejectUnauthorized: false }
+      ssl: false
     })
 
     await client.connect()

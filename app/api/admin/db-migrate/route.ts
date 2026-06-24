@@ -23,7 +23,7 @@ export async function GET() {
     password: targetPassword,
     database: 'postgres',
     connectionTimeoutMillis: 5000,
-    ssl: { rejectUnauthorized: false }
+    ssl: false
   })
 
   try {
